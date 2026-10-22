@@ -33,8 +33,6 @@ public enum RepeatPolicy {
         case success
         /// 응답 지연(.cannotComplete).
         case busy
-        /// 보내지 않았다.
-        case wait
         /// 그 외 실패.
         case failure
     }
@@ -53,7 +51,6 @@ public enum RepeatPolicy {
             guard attemptStart - start + longest <= tickBudget else { return nil }
             let result = attempt(entry)
             longest = max(longest, now() - attemptStart)
-            if result == .wait { return nil }
             drop()
             if result == .success || result == .busy { return entry }
         }
@@ -85,7 +82,7 @@ public enum RepeatPolicy {
                     return entry
                 case .failure:
                     continue
-                case .busy, .wait:
+                case .busy:
                     break
                 }
             }

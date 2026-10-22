@@ -25,7 +25,6 @@
 /* 설정 창 */
 "settings.tab.general" = "一般";
 "settings.tab.shortcuts" = "ショートカット";
-"settings.tab.animation" = "アニメーション";
 "settings.tab.exclusions" = "除外するアプリ";
 "settings.login" = "ログイン時に開く";
 "settings.login.approval" = "ログイン時に開く（承認が必要）";
@@ -52,23 +51,3 @@
 "exclusions.add" = "アプリを追加";
 "exclusions.remove" = "アプリを削除";
 "exclusions.choose" = "アプリを選択…";
-
-"animation.enabled" = "カスタムアニメーションを使用";
-"animation.speed" = "速度";
-"animation.speed.fast" = "速く";
-"animation.speed.slow" = "遅く";
-"animation.duration" = "%@秒";
-"animation.curve" = "効果";
-"animation.curve.easeIn" = "だんだん速く";
-"animation.curve.easeOut" = "だんだん遅く";
-"animation.curve.linear" = "一定";
-"animation.curve.easeInOut" = "なめらか";
-"animation.curve.spring" = "弾むように";
-"animation.help" = "オフのときや%@が許可されていないときは、macOS 標準のエフェクトでしまうか復元します。この権限は、しまうウインドウの外観をキャプチャするためだけに使用します。";
-"animation.unsupported" = "macOS 14 以降で使用できます。";
-"animation.permission.screen" = "画面収録";
-"animation.permission.screenAudio" = "画面収録とシステムオーディオ録音";
-"animation.permission.granted" = "許可済み";
-"animation.permission.required" = "許可が必要";
-"animation.permission.request" = "アクセスを要求…";
-"animation.permission.restart" = "許可した後、再起動が必要な場合があります。";

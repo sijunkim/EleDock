@@ -3,7 +3,7 @@ import Foundation
 /// 반복이 끝난 뒤 복원 확정·포커스 확인 시각.
 public struct SettleSchedule: Sendable {
     /// 포커스를 주기 전 시스템 애니메이션을 기다리는 시간.
-    public static let earliestDelay = AnimationTiming.unresponsiveTime
+    public static let earliestDelay: TimeInterval = 0.6
     /// 마감까지의 기본 여유.
     public static let baseWait: TimeInterval = 1.0
     /// 미확인 항목 하나당 마감에 더하는 시간.
@@ -99,13 +99,11 @@ public struct RestoreConfirmations<Entry, Key: Equatable> {
     }
 
     /// 복원을 보냈다.
-    public mutating func record(_ entry: Entry, confirmed isConfirmed: Bool = false) {
+    public mutating func record(_ entry: Entry) {
         let id = key(entry)
         sent.removeAll { key($0) == id }
         sent.append(entry)
-        if isConfirmed {
-            confirm(id)
-        } else if !unconfirmed.contains(where: { key($0) == id }) {
+        if !unconfirmed.contains(where: { key($0) == id }) {
             confirmed.removeAll { $0 == id }
             unconfirmed.append(entry)
         }

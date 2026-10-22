@@ -9,7 +9,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private static let trustPollInterval: TimeInterval = 2
 
     private var tracker: WindowTracker?
-    private var animator: MinimizeAnimator?
     private var hotKeys: HotKeyCenter?
     private var updates: UpdateController?
     private var statusMenu: StatusMenu?
@@ -23,18 +22,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let state = AppState()
         let loginItems = LoginItemController()
         let updates = UpdateController(state: state)
-        let permission = ScreenRecordingPermission()
-        let animator = MinimizeAnimator(settings: settings, permission: permission)
-        let tracker = WindowTracker(settings: settings, animator: animator)
+        let tracker = WindowTracker(settings: settings)
         let repeater = RepeatController(tracker: tracker, settings: settings)
         let hotKeys = HotKeyCenter(state: state, settings: settings, repeater: repeater)
         self.updates = updates
         self.tracker = tracker
-        self.animator = animator
         self.hotKeys = hotKeys
         statusMenu = StatusMenu(
             tracker: tracker, repeater: repeater, hotKeys: hotKeys, state: state, settings: settings,
-            loginItems: loginItems, updates: updates, permission: permission)
+            loginItems: loginItems, updates: updates)
 
         hotKeys.install()
         _ = NSWorkspace.shared.notificationCenter.addObserver(
@@ -60,11 +56,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         RunLoop.main.add(timer, forMode: .common)
-    }
-
-    // 애니메이션 때문에 줄여 둔 창을 원래 크기로 되돌린다.
-    func applicationWillTerminate(_ notification: Notification) {
-        animator?.restoreAllSavedFrames()
     }
 
     private func trustGranted() {

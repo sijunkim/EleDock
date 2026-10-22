@@ -22,8 +22,8 @@ struct SettleScheduleTests {
         #expect(SettleSchedule.resendLimit > SettleSchedule(start: 0, pendingCount: 1).deadline)
     }
 
-    @Test func resendCheckFallsBetweenUnresponsiveTimeAndResendLimit() {
-        #expect(SettleSchedule.resendCheckDelay > AnimationTiming.unresponsiveTime)
+    @Test func resendCheckFallsBetweenEarliestDelayAndResendLimit() {
+        #expect(SettleSchedule.resendCheckDelay > SettleSchedule.earliestDelay)
         #expect(SettleSchedule.resendCheckDelay + SettleSchedule.checkInterval < SettleSchedule.resendLimit)
     }
 
@@ -115,13 +115,6 @@ struct RestoreConfirmationsTests {
         #expect(confirmations.focusTarget == "b")
         confirmations.confirm("c")
         #expect(confirmations.focusTarget == "c")
-    }
-
-    @Test func alreadyRestoredEntryIsConfirmedAtOnce() {
-        var confirmations = confirmations([])
-        confirmations.record("a", confirmed: true)
-        #expect(confirmations.isResolved)
-        #expect(confirmations.focusTarget == "a")
     }
 
     @Test func newRepeatKeepsUnconfirmedButResetsFocus() {

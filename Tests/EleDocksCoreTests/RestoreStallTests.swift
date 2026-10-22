@@ -33,7 +33,7 @@ struct RestoreStallTests {
         #expect(reached == [false, false, false, true])
     }
 
-    @Test func stallDurationOutlastsUnresponsiveTime() {
-        #expect(RepeatPolicy.stallDuration >= 2 * AnimationTiming.unresponsiveTime)
+    @Test func stallDurationOutlastsEarliestDelay() {
+        #expect(RepeatPolicy.stallDuration >= 2 * SettleSchedule.earliestDelay)
     }
 }

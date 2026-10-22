@@ -25,7 +25,6 @@
 /* 설정 창 */
 "settings.tab.general" = "General";
 "settings.tab.shortcuts" = "Shortcuts";
-"settings.tab.animation" = "Animation";
 "settings.tab.exclusions" = "Excluded Apps";
 "settings.login" = "Open at login";
 "settings.login.approval" = "Open at login (approval required)";
@@ -52,23 +51,3 @@
 "exclusions.add" = "Add App";
 "exclusions.remove" = "Remove App";
 "exclusions.choose" = "Choose App…";
-
-"animation.enabled" = "Use custom animation";
-"animation.speed" = "Speed";
-"animation.speed.fast" = "Fast";
-"animation.speed.slow" = "Slow";
-"animation.duration" = "%@ sec";
-"animation.curve" = "Effect";
-"animation.curve.easeIn" = "Ease In";
-"animation.curve.easeOut" = "Ease Out";
-"animation.curve.linear" = "Linear";
-"animation.curve.easeInOut" = "Ease In and Out";
-"animation.curve.spring" = "Bounce";
-"animation.help" = "When this is off or %@ isn’t allowed, windows minimize and restore with the standard macOS effect. The permission is used only to capture the window being minimized.";
-"animation.unsupported" = "Available on macOS 14 or later.";
-"animation.permission.screen" = "Screen Recording";
-"animation.permission.screenAudio" = "Screen & System Audio Recording";
-"animation.permission.granted" = "Allowed";
-"animation.permission.required" = "Required";
-"animation.permission.request" = "Request Access…";
-"animation.permission.restart" = "After allowing access, EleDocks may need to restart.";

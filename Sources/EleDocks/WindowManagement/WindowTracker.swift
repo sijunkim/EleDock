@@ -7,12 +7,11 @@ typealias WindowEntry = MinimizedStack<AXUIElement>.Entry
 /// 최소화 순서를 추적하고 창을 최소화·복원한다.
 final class WindowTracker {
     /// 창 조작 AX 호출의 timeout.
-    static let callTimeout = Float(AnimationTiming.axCallTimeout)
+    static let callTimeout: Float = 0.1
     /// 반복이 끝난 뒤 포커스의 timeout.
     private static let settleTimeout: Float = 0.3
 
     private let settings: AppSettings
-    let animator: MinimizeAnimator
     private let observer = MinimizeObserver()
     private var stack = MinimizedStack<AXUIElement>()
 
@@ -29,22 +28,19 @@ final class WindowTracker {
     /// 진행 중인 반복 마무리.
     private var settleTask: Task<Void, Never>?
 
-    init(settings: AppSettings, animator: MinimizeAnimator) {
+    init(settings: AppSettings) {
         self.settings = settings
-        self.animator = animator
         observer.onEvent = { [weak self] in self?.handle($0) }
     }
 
     /// 관찰을 시작한다.
     func start() {
         observer.start()
-        animator.putBackUnminimizedFrames()
     }
 
-    /// 관찰과 애니메이션 작업을 멈추고 스택을 비운다.
+    /// 관찰을 멈추고 스택을 비운다.
     func stop() {
         observer.stop()
-        animator.cancelAll()
         stack = MinimizedStack()
         minimizeQueue = nil
         focusCandidates = nil
@@ -63,18 +59,15 @@ final class WindowTracker {
             } else {
                 stack.push(entry)
             }
-            animator.windowMinimized(entry.window)
         case .alreadyMinimized(let entry): stack.insertAtBottom(entry)
         case .gone(let window):
             stack.remove(window)
             restores.confirm(window)
             minimizes.confirm(window)
-            animator.windowGone(window)
         case .forgotten(let pid):
             stack.removeAll(pid: pid)
             restores.discard { $0.pid == pid }
             minimizes.discard { $0.pid == pid }
-            animator.forget(pid: pid)
         }
     }
 
@@ -114,16 +107,14 @@ final class WindowTracker {
         } else {
             minimizes.beginRepeat()
             minimizeQueue = MinimizeCandidates.current(settings: settings)?.filter { entry in
-                !animator.isMinimizing(entry.window) && !minimizes.unconfirmed.contains { $0.window == entry.window }
+                !minimizes.unconfirmed.contains { $0.window == entry.window }
             }
         }
-        animator.beginRepeat(repeats: repeats)
         guard repeats else { return }
         observer.beginRepeat()
     }
 
     func endRepeat() {
-        animator.endRepeat()
         observer.endRepeat()
         for entry in restores.unconfirmed.reversed() { stack.putBack(entry) }
         let candidates = focusCandidates
@@ -142,7 +133,7 @@ final class WindowTracker {
                 guard schedule.minimizePhase(at: now) != .early else { continue }
                 var busy = BusyGroups<pid_t>()
                 let returned = restores.resolve(phase: phase) { entry in
-                    let state = settledMinimizedState(entry, &busy)
+                    let state = readMinimizedState(entry, &busy)
                     if state == false { stack.remove(entry.window) }
                     return state
                 }
@@ -150,7 +141,7 @@ final class WindowTracker {
                     stack.putBack(entry)
                 }
                 let resends = minimizes.resolve(
-                    phase: schedule.minimizePhase(at: now), minimizedState: { pendingMinimizeState($0, &busy) },
+                    phase: schedule.minimizePhase(at: now), minimizedState: { readMinimizedState($0, &busy) },
                     canResend: { entry in
                         schedule.allowsResend(at: now)
                             && busy.read(entry.pid, isBusy: \.isDelay) { () throws(AccessibilityError) in
@@ -171,7 +162,6 @@ final class WindowTracker {
 
     // 가장 최근 최소화 창부터 하나씩 복원한다.
     func restoreNext() {
-        guard takeUnsentMinimize() == nil else { return }
         let restored = restoreFromStack(pop: { stack.popLast() })
         if restored == nil, stack.last == nil { restoreFrontmostMinimizedWindow() }
     }
@@ -185,13 +175,6 @@ final class WindowTracker {
                 entry.window.withMessagingTimeout(Self.callTimeout) { entry.window.minimizedState }
             },
             restore: { restore($0) })
-    }
-
-    // 시스템 최소화를 보내기 전인 최소화를 취소하고 복원된 것으로 기록한다.
-    private func takeUnsentMinimize() -> WindowEntry? {
-        guard let entry = animator.takeLatestUnsentMinimize() else { return nil }
-        restores.record(entry, confirmed: true)
-        return entry
     }
 
     // frontmost 앱의 최소화된 창 하나를 복원한다.
@@ -216,22 +199,15 @@ final class WindowTracker {
         guard
             let sent = RepeatPolicy.advance(
                 peek: { minimizeQueue?.first }, drop: { _ = minimizeQueue?.removeFirst() },
-                attempt: { minimize($0) }, now: { ProcessInfo.processInfo.systemUptime })
+                attempt: { setMinimized(true, $0) }, now: { ProcessInfo.processInfo.systemUptime })
         else { return }
         minimizes.record(sent)
         focusCandidates = minimizeQueue
     }
 
-    /// 모든 최소화가 거치는 곳.
-    private func minimize(_ entry: WindowEntry) -> RepeatPolicy.Attempt {
-        let plain = { self.setMinimized(true, entry) }
-        return animator.isActive ? animator.minimize(entry, plain: plain) : plain()
-    }
-
     /// 모든 복원이 거치는 곳.
     private func restore(_ entry: WindowEntry) -> RepeatPolicy.Attempt {
-        let plain = { self.setMinimized(false, entry) }
-        let result = animator.isActive ? animator.restore(entry, plain: plain) : plain()
+        let result = setMinimized(false, entry)
         if result == .success || result == .busy { restores.record(entry) }
         return result
     }

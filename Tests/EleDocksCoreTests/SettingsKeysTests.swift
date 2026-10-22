@@ -9,9 +9,6 @@ struct SettingsKeysTests {
         #expect(SettingsKeys.excludedApps == "excludedBundleIDs")
         #expect(SettingsKeys.suppressMoveAlert == "suppressMoveToApplicationsAlert")
         #expect(SettingsKeys.appleLanguages == "AppleLanguages")
-        #expect(SettingsKeys.customAnimationEnabled == "customAnimationEnabled")
-        #expect(SettingsKeys.customAnimationDuration == "customAnimationDuration")
-        #expect(SettingsKeys.customAnimationCurve == "customAnimationCurve")
     }
 
     @Test func shortcutKeysMatchStoredNames() {
@@ -21,11 +18,8 @@ struct SettingsKeysTests {
         #expect(SettingsKeys.modifiers(.restore) == "restoreModifiers")
     }
 
-    @Test func defaultsTurnOnHotKeysAndHoldToRepeatButNotCustomAnimation() {
-        #expect(
-            SettingsKeys.defaults == [
-                "hotKeysEnabled": true, "holdToRepeatEnabled": true, "customAnimationEnabled": false,
-            ])
+    @Test func defaultsTurnOnHotKeysAndHoldToRepeat() {
+        #expect(SettingsKeys.defaults == ["hotKeysEnabled": true, "holdToRepeatEnabled": true])
     }
 
     @Test func excludedAppsDropDuplicatesKeepingFirstOrder() {

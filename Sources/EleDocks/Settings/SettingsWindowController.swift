@@ -8,14 +8,13 @@ final class SettingsWindowController {
 
     init(
         updater: SPUUpdater?, state: AppState, settings: AppSettings, loginItems: LoginItemController,
-        hotKeys: HotKeyCenter, permission: ScreenRecordingPermission
+        hotKeys: HotKeyCenter
     ) {
         let tabs = SettingsTabViewController(hotKeys: hotKeys)
         tabs.tabStyle = .toolbar
         for tab in SettingsTab.allCases {
             let view = tab.view(
-                updater: updater, state: state, settings: settings, loginItems: loginItems, hotKeys: hotKeys,
-                permission: permission)
+                updater: updater, state: state, settings: settings, loginItems: loginItems, hotKeys: hotKeys)
             let host = NSHostingController(rootView: view)
             host.sizingOptions = .preferredContentSize
             host.title = tab.title
@@ -64,13 +63,12 @@ private final class SettingsTabViewController: NSTabViewController {
 }
 
 private enum SettingsTab: CaseIterable {
-    case general, shortcuts, animation, exclusions
+    case general, shortcuts, exclusions
 
     var title: String {
         switch self {
         case .general: L("settings.tab.general")
         case .shortcuts: L("settings.tab.shortcuts")
-        case .animation: L("settings.tab.animation")
         case .exclusions: L("settings.tab.exclusions")
         }
     }
@@ -79,14 +77,13 @@ private enum SettingsTab: CaseIterable {
         switch self {
         case .general: "gearshape"
         case .shortcuts: "keyboard"
-        case .animation: "sparkles"
         case .exclusions: "nosign"
         }
     }
 
     func view(
         updater: SPUUpdater?, state: AppState, settings: AppSettings, loginItems: LoginItemController,
-        hotKeys: HotKeyCenter, permission: ScreenRecordingPermission
+        hotKeys: HotKeyCenter
     ) -> AnyView {
         switch self {
         case .general:
@@ -94,7 +91,6 @@ private enum SettingsTab: CaseIterable {
                 GeneralSettingsView(
                     updater: updater, state: state, settings: settings, loginItems: loginItems, hotKeys: hotKeys))
         case .shortcuts: AnyView(ShortcutSettingsView(state: state, settings: settings, hotKeys: hotKeys))
-        case .animation: AnyView(AnimationSettingsView(settings: settings, permission: permission))
         case .exclusions: AnyView(ExclusionSettingsView(settings: settings, hotKeys: hotKeys))
         }
     }

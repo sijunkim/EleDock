@@ -25,7 +25,6 @@
 /* 설정 창 */
 "settings.tab.general" = "일반";
 "settings.tab.shortcuts" = "단축키";
-"settings.tab.animation" = "애니메이션";
 "settings.tab.exclusions" = "제외 앱";
 "settings.login" = "로그인 시 열기";
 "settings.login.approval" = "로그인 시 열기 (승인 필요)";
@@ -52,23 +51,3 @@
 "exclusions.add" = "앱 추가";
 "exclusions.remove" = "앱 제거";
 "exclusions.choose" = "앱 선택…";
-
-"animation.enabled" = "사용자 지정 애니메이션 사용";
-"animation.speed" = "속도";
-"animation.speed.fast" = "빠르게";
-"animation.speed.slow" = "느리게";
-"animation.duration" = "%@초";
-"animation.curve" = "효과";
-"animation.curve.easeIn" = "점점 빠르게";
-"animation.curve.easeOut" = "점점 느리게";
-"animation.curve.linear" = "일정하게";
-"animation.curve.easeInOut" = "부드럽게";
-"animation.curve.spring" = "튕기듯이";
-"animation.help" = "꺼져 있거나 %@ 권한이 없으면 macOS 기본 효과로 최소화·복원합니다. 이 권한은 최소화하는 창의 모습을 캡처하는 데만 씁니다.";
-"animation.unsupported" = "macOS 14 이상에서 사용할 수 있습니다.";
-"animation.permission.screen" = "화면 기록";
-"animation.permission.screenAudio" = "화면 및 시스템 오디오 녹음";
-"animation.permission.granted" = "허용됨";
-"animation.permission.required" = "필요함";
-"animation.permission.request" = "권한 요청…";
-"animation.permission.restart" = "허용한 뒤에는 다시 시작해야 적용될 수 있습니다.";

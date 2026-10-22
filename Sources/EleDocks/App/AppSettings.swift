@@ -55,24 +55,6 @@ final class AppSettings: ObservableObject {
         set { write(newValue, forKey: Key.suppressMoveAlert) }
     }
 
-    /// "애니메이션" 켜기.
-    var animationEnabled: Bool {
-        get { defaults.bool(forKey: Key.customAnimationEnabled) }
-        set { write(newValue, forKey: Key.customAnimationEnabled) }
-    }
-
-    /// 애니메이션 지속 시간(초).
-    var animationDuration: Double {
-        get { AnimationTiming.duration(storedValue: defaults.object(forKey: Key.customAnimationDuration)) }
-        set { write(AnimationTiming.clampedDuration(newValue), forKey: Key.customAnimationDuration) }
-    }
-
-    /// 애니메이션 효과(진행 곡선).
-    var animationCurve: AnimationCurve {
-        get { AnimationCurve(storedValue: defaults.object(forKey: Key.customAnimationCurve)) }
-        set { write(newValue.rawValue, forKey: Key.customAnimationCurve) }
-    }
-
     /// 제외 앱의 번들 ID 목록.
     var excludedBundleIDs: [String] {
         Key.excludedBundleIDs(stored: defaults.stringArray(forKey: Key.excludedApps) ?? [])

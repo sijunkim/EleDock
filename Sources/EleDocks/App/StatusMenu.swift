@@ -20,13 +20,11 @@ final class StatusMenu: NSObject, NSMenuDelegate {
     private let settings: AppSettings
     private let loginItems: LoginItemController
     private let updates: UpdateController
-    private let permission: ScreenRecordingPermission
     private var settingsWindow: SettingsWindowController?
 
     init(
         tracker: WindowTracker, repeater: RepeatController, hotKeys: HotKeyCenter, state: AppState,
-        settings: AppSettings, loginItems: LoginItemController, updates: UpdateController,
-        permission: ScreenRecordingPermission
+        settings: AppSettings, loginItems: LoginItemController, updates: UpdateController
     ) {
         self.tracker = tracker
         self.repeater = repeater
@@ -35,7 +33,6 @@ final class StatusMenu: NSObject, NSMenuDelegate {
         self.settings = settings
         self.loginItems = loginItems
         self.updates = updates
-        self.permission = permission
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         super.init()
         if let image = NSImage(systemSymbolName: "dock.arrow.up.rectangle", accessibilityDescription: "EleDocks")?
@@ -132,8 +129,7 @@ final class StatusMenu: NSObject, NSMenuDelegate {
     @objc private func showSettings() {
         if settingsWindow == nil {
             settingsWindow = SettingsWindowController(
-                updater: updates.updater, state: state, settings: settings, loginItems: loginItems, hotKeys: hotKeys,
-                permission: permission)
+                updater: updates.updater, state: state, settings: settings, loginItems: loginItems, hotKeys: hotKeys)
         }
         settingsWindow?.show()
     }

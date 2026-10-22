@@ -18,14 +18,6 @@ struct RepeatPolicyTests {
         return (entry, tried)
     }
 
-    @Test func waitKeepsCandidateForNextTick() {
-        var queue = ["a", "b"]
-        let (entry, tried) = advance(&queue, results: ["a": .wait, "b": .success])
-        #expect(entry == nil)
-        #expect(tried == ["a"])
-        #expect(queue == ["a", "b"])
-    }
-
     @Test func busyCountsAsSent() {
         var queue = ["a", "b"]
         let (entry, tried) = advance(&queue, results: ["a": .busy, "b": .success])
@@ -70,13 +62,6 @@ struct RepeatPolicyTests {
         #expect(entry == "c")
         #expect(tried == ["a", "b", "c"])
         #expect(queue.isEmpty)
-    }
-
-    @Test func failureThenWaitStopsAtWait() {
-        var queue = ["a", "b", "c"]
-        let (entry, _) = advance(&queue, results: ["a": .failure, "b": .wait])
-        #expect(entry == nil)
-        #expect(queue == ["b", "c"])
     }
 
     @Test func failureThenBusySendsBusyCandidate() {

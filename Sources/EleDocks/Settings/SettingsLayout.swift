@@ -10,9 +10,6 @@ enum SettingsLayout {
     /// 단축키 녹화 버튼 아래 오류 문구 한 줄 높이.
     static let recorderMessageRowHeight: CGFloat = 20
     static let exclusionsHeight: CGFloat = 324
-    static let animationHeight: CGFloat = 284
-    /// 권한 Section 이 없는 애니메이션 탭 높이.
-    static let animationUnsupportedHeight: CGFloat = 180
     static let exclusionListHeight: CGFloat = 180
     static let exclusionButtonSpacing: CGFloat = 12
     static let appIconSize: CGFloat = 20

@@ -24,13 +24,6 @@ extension AXUIElement {
         try AccessibilityError.check(AXUIElementPerformAction(self, action as CFString))
     }
 
-    /// 여러 속성을 한 번에 읽는다.
-    func attributes(_ names: [String]) throws(AccessibilityError) -> [AnyObject] {
-        var values: CFArray?
-        try AccessibilityError.check(AXUIElementCopyMultipleAttributeValues(self, names as CFArray, [], &values))
-        return values as? [AnyObject] ?? []
-    }
-
     /// 이 요소의 AX messaging timeout 을 건다.
     func setMessagingTimeout(_ seconds: Float) {
         AXUIElementSetMessagingTimeout(self, seconds)

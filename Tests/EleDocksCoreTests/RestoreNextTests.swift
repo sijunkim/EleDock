@@ -52,13 +52,6 @@ struct RestoreNextTests {
         #expect(harness.stack == ["a", "b"])
     }
 
-    @Test func waitRestoreKeepsWindowOnTopAndStops() {
-        var harness = Harness(["a", "b"])
-        let restored = harness.run(minimized: ["a": true, "b": true], results: ["a": .success, "b": .wait])
-        #expect(restored == nil)
-        #expect(harness.stack == ["a", "b"])
-    }
-
     @Test func failedRestoreDropsWindowAndTriesNext() {
         var harness = Harness(["a", "b"])
         let restored = harness.run(minimized: ["a": true, "b": true], results: ["a": .success, "b": .failure])
