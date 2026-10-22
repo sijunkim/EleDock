@@ -1,7 +1,7 @@
 import ApplicationServices
 
 /// 실패한 AX 호출의 AXError.
-enum AccessibilityError: Error {
+nonisolated enum AccessibilityError: Error {
     /// 앱이 응답하지 않는다.
     case cannotComplete
     /// 요소가 이미 사라졌다.

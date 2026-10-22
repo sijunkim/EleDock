@@ -1,4 +1,4 @@
-// Foundation 만으로 쓰는 Carbon(HIToolbox) 상수.
+// Carbon(HIToolbox) 상수.
 
 /// Carbon 핫키 수식키 마스크(cmdKey 등).
 enum CarbonModifier {

@@ -1,6 +1,6 @@
 import Foundation
 
-/// App Translocation(격리된 다운로드를 읽기 전용 임시 경로에서 실행) 처리.
+/// App Translocation 처리.
 enum AppTranslocation {
     // 원래 번들 경로를 돌려준다.
     static func originalBundleURL() -> URL {

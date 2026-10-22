@@ -2,7 +2,7 @@ import ApplicationServices
 
 /// AXUIElement 호출을 AccessibilityError 를 던지는 메서드로 감싼다.
 extension AXUIElement {
-    static func application(pid: pid_t) -> AXUIElement {
+    nonisolated static func application(pid: pid_t) -> AXUIElement {
         AXUIElementCreateApplication(pid)
     }
 
@@ -10,10 +10,18 @@ extension AXUIElement {
         AXUIElementCreateSystemWide()
     }
 
-    func attribute(_ name: String) throws(AccessibilityError) -> CFTypeRef? {
+    nonisolated func attribute(_ name: String) throws(AccessibilityError) -> CFTypeRef? {
         var value: CFTypeRef?
         try AccessibilityError.check(AXUIElementCopyAttributeValue(self, name as CFString, &value))
         return value
+    }
+
+    /// 여러 속성을 한 번에 읽는다.
+    nonisolated func attributes(_ names: [String]) throws(AccessibilityError) -> [CFTypeRef] {
+        var values: CFArray?
+        try AccessibilityError.check(
+            AXUIElementCopyMultipleAttributeValues(self, names as CFArray, AXCopyMultipleAttributeOptions(), &values))
+        return values as [CFTypeRef]? ?? []
     }
 
     func setAttribute(_ name: String, _ value: CFTypeRef) throws(AccessibilityError) {
@@ -25,12 +33,12 @@ extension AXUIElement {
     }
 
     /// 이 요소의 AX messaging timeout 을 건다.
-    func setMessagingTimeout(_ seconds: Float) {
+    nonisolated func setMessagingTimeout(_ seconds: Float) {
         AXUIElementSetMessagingTimeout(self, seconds)
     }
 
     /// `seconds` 동안만 응답을 기다리며 `body` 를 부른다.
-    func withMessagingTimeout<T, E: Error>(_ seconds: Float?, _ body: () throws(E) -> T) throws(E) -> T {
+    nonisolated func withMessagingTimeout<T, E: Error>(_ seconds: Float?, _ body: () throws(E) -> T) throws(E) -> T {
         guard let seconds else { return try body() }
         setMessagingTimeout(seconds)
         defer { setMessagingTimeout(0) }

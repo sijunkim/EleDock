@@ -2,7 +2,7 @@ import Foundation
 
 /// 반복이 끝난 뒤 복원 확정·포커스 확인 시각.
 public struct SettleSchedule: Sendable {
-    /// 포커스를 주기 전 시스템 애니메이션을 기다리는 시간.
+    /// 시스템 애니메이션을 기다리는 시간.
     public static let earliestDelay: TimeInterval = 0.6
     /// 마감까지의 기본 여유.
     public static let baseWait: TimeInterval = 1.0
@@ -23,9 +23,9 @@ public struct SettleSchedule: Sendable {
         case early
         /// 알림을 기다린다.
         case waiting
-        /// 마감이 지나 조회로 판정한다.
+        /// 조회로 판정한다.
         case due
-        /// 상한이 지나 응답 지연도 판정한다.
+        /// 응답 지연까지 판정한다.
         case expired
     }
 
@@ -221,7 +221,7 @@ extension RepeatPolicy {
     public enum MinimizeFocus<Entry> {
         /// 이 창에 포커스를 준다.
         case focus(Entry)
-        /// 같은 앱 상태가 아직 확정되지 않았다.
+        /// 기다린다.
         case wait
         /// 포커스를 주지 않는다.
         case none

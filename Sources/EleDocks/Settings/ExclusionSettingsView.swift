@@ -16,7 +16,7 @@ struct ExclusionSettingsView: View {
                 .frame(height: SettingsLayout.exclusionListHeight)
                 .overlay {
                     if settings.excludedBundleIDs.isEmpty {
-                        Text(L("exclusions.empty")).foregroundStyle(.secondary)
+                        ExclusionsEmptyView()
                     }
                 }
                 .onDeleteCommand(perform: removeSelected)
@@ -87,8 +87,10 @@ struct ExclusionSettingsView: View {
     }
 }
 
-private struct AppRow: View {
+/// 앱 아이콘과 이름 행.
+struct AppRow: View {
     let bundleID: String
+    var detail: String?
 
     var body: some View {
         let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID)
@@ -100,6 +102,9 @@ private struct AppRow: View {
             .resizable()
             .frame(width: SettingsLayout.appIconSize, height: SettingsLayout.appIconSize)
             Text(url.map { FileManager.default.displayName(atPath: $0.path) } ?? bundleID)
+            if let detail {
+                Text(detail).foregroundStyle(.secondary).lineLimit(1)
+            }
         }
     }
 }

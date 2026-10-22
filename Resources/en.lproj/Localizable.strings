@@ -26,6 +26,7 @@
 "settings.tab.general" = "General";
 "settings.tab.shortcuts" = "Shortcuts";
 "settings.tab.exclusions" = "Excluded Apps";
+"settings.tab.about" = "About";
 "settings.login" = "Open at login";
 "settings.login.approval" = "Open at login (approval required)";
 "settings.hotkeys" = "Enable shortcuts";
@@ -45,9 +46,18 @@
 "shortcut.registerFailed" = "Couldn’t register (in use by another app)";
 "shortcut.error.modifier" = "Include ⌘, ⌥, or ⌃.";
 "shortcut.error.duplicate" = "Already used by the other shortcut.";
+"shortcut.conflicts" = "Apps Using These Shortcuts";
+"shortcut.conflicts.scanning" = "Checking running apps…";
+"shortcut.conflicts.none" = "No Conflicting Apps";
 
 "exclusions.help" = "When one of these apps is in front, EleDocks shortcuts are turned off so the app’s own shortcuts (such as ⌘M) work. Its windows are also skipped when minimizing.";
 "exclusions.empty" = "No Excluded Apps";
+"exclusions.empty.detail" = "Every app’s windows go into the Dock with EleDocks.";
 "exclusions.add" = "Add App";
 "exclusions.remove" = "Remove App";
 "exclusions.choose" = "Choose App…";
+
+"about.tagline" = "Windows, elegantly into the Dock.";
+"about.version" = "Version";
+"about.website" = "Website";
+"about.donate" = "Donate";

@@ -8,14 +8,14 @@ extension Shortcut {
     }
 
     var displayString: String {
-        displayString(layoutKeyName: Shortcut.layoutKeyName)
+        displayString { Shortcut.layoutKeyName($0) ?? "?" }
     }
 
-    // ASCII 자판 기준의 키 이름.
-    private static func layoutKeyName(_ keyCode: Int) -> String {
+    /// ASCII 자판 기준의 키 이름.
+    static func layoutKeyName(_ keyCode: Int) -> String? {
         guard let source = TISCopyCurrentASCIICapableKeyboardLayoutInputSource()?.takeRetainedValue(),
             let raw = TISGetInputSourceProperty(source, kTISPropertyUnicodeKeyLayoutData)
-        else { return "?" }
+        else { return nil }
         let data = Unmanaged<CFData>.fromOpaque(raw).takeUnretainedValue() as Data
         var deadKeys: UInt32 = 0
         var chars = [UniChar](repeating: 0, count: 4)
@@ -26,9 +26,9 @@ extension Shortcut {
                 0, UInt32(LMGetKbdType()), OptionBits(kUCKeyTranslateNoDeadKeysBit), &deadKeys, chars.count, &length,
                 &chars)
         }
-        guard status == noErr, length > 0 else { return "?" }
+        guard status == noErr, length > 0 else { return nil }
         let text = String(utf16CodeUnits: chars, count: length)
-        guard !text.unicodeScalars.contains(where: { CharacterSet.controlCharacters.contains($0) }) else { return "?" }
+        guard !text.unicodeScalars.contains(where: { CharacterSet.controlCharacters.contains($0) }) else { return nil }
         return text.uppercased()
     }
 }

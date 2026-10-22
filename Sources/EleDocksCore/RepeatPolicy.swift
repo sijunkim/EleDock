@@ -15,7 +15,7 @@ public enum RepeatMode: Equatable, Sendable {
         }
     }
 
-    /// 단축키 등록이 해제되면 반복을 끝내는지.
+    /// 단축키 등록 해제로 끝나는 반복인지.
     public var stopsOnUnregister: Bool {
         if case .hotKey = self { return true }
         return false

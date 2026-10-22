@@ -7,6 +7,14 @@ struct ShortcutSettingsView: View {
     let settings: AppSettings
     let hotKeys: HotKeyCenter
     @StateObject private var model = ShortcutSettingsModel()
+    @StateObject private var conflicts: MenuConflictsModel
+
+    init(state: AppState, settings: AppSettings, hotKeys: HotKeyCenter) {
+        self.state = state
+        self.settings = settings
+        self.hotKeys = hotKeys
+        _conflicts = StateObject(wrappedValue: MenuConflictsModel(settings: settings))
+    }
 
     var body: some View {
         Form {
@@ -29,6 +37,7 @@ struct ShortcutSettingsView: View {
                     }
                 }
             }
+            MenuConflictsSection(model: conflicts, settings: settings)
         }
         .formStyle(.grouped)
         .frame(width: SettingsLayout.width, height: height)

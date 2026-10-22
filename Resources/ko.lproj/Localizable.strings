@@ -26,6 +26,7 @@
 "settings.tab.general" = "일반";
 "settings.tab.shortcuts" = "단축키";
 "settings.tab.exclusions" = "제외 앱";
+"settings.tab.about" = "정보";
 "settings.login" = "로그인 시 열기";
 "settings.login.approval" = "로그인 시 열기 (승인 필요)";
 "settings.hotkeys" = "단축키 사용";
@@ -45,9 +46,18 @@
 "shortcut.registerFailed" = "등록 실패 (다른 앱이 사용 중)";
 "shortcut.error.modifier" = "⌘, ⌥, ⌃ 중 하나를 포함하세요.";
 "shortcut.error.duplicate" = "다른 단축키와 같습니다.";
+"shortcut.conflicts" = "이 단축키를 쓰는 앱";
+"shortcut.conflicts.scanning" = "실행 중인 앱 확인 중…";
+"shortcut.conflicts.none" = "겹치는 앱 없음";
 
 "exclusions.help" = "목록의 앱이 맨 앞에 있으면 EleDocks 단축키가 꺼져 앱 자체 단축키(⌘M 등)를 쓸 수 있습니다. 최소화할 때도 이 앱들의 창은 건너뜁니다.";
 "exclusions.empty" = "제외한 앱 없음";
+"exclusions.empty.detail" = "모든 앱의 창이 EleDocks와 함께 Dock으로 들어갑니다.";
 "exclusions.add" = "앱 추가";
 "exclusions.remove" = "앱 제거";
 "exclusions.choose" = "앱 선택…";
+
+"about.tagline" = "창을 우아하게, Dock으로.";
+"about.version" = "버전";
+"about.website" = "웹사이트";
+"about.donate" = "후원하기";

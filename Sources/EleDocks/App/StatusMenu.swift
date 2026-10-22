@@ -127,16 +127,19 @@ final class StatusMenu: NSObject, NSMenuDelegate {
     }
 
     @objc private func showSettings() {
+        openSettings()
+    }
+
+    @objc private func showAbout() {
+        openSettings(.about)
+    }
+
+    private func openSettings(_ tab: SettingsTab? = nil) {
         if settingsWindow == nil {
             settingsWindow = SettingsWindowController(
                 updater: updates.updater, state: state, settings: settings, loginItems: loginItems, hotKeys: hotKeys)
         }
-        settingsWindow?.show()
-    }
-
-    @objc private func showAbout() {
-        NSApp.activate(ignoringOtherApps: true)
-        NSApp.orderFrontStandardAboutPanel(nil)
+        settingsWindow?.show(tab)
     }
 
     @objc private func openAccessibilitySettings() {

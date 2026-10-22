@@ -5,22 +5,24 @@ import SwiftUI
 /// 툴바 탭 설정 창.
 final class SettingsWindowController {
     private let window: NSWindow
+    private let tabs: SettingsTabViewController
 
     init(
         updater: SPUUpdater?, state: AppState, settings: AppSettings, loginItems: LoginItemController,
         hotKeys: HotKeyCenter
     ) {
-        let tabs = SettingsTabViewController(hotKeys: hotKeys)
+        tabs = SettingsTabViewController(hotKeys: hotKeys)
         tabs.tabStyle = .toolbar
         for tab in SettingsTab.allCases {
             let view = tab.view(
                 updater: updater, state: state, settings: settings, loginItems: loginItems, hotKeys: hotKeys)
-            let host = NSHostingController(rootView: view)
+            let host = NSHostingController(rootView: view.tint(Brand.accent))
             host.sizingOptions = .preferredContentSize
             host.title = tab.title
             let item = NSTabViewItem(viewController: host)
             item.label = tab.title
-            item.image = NSImage(systemSymbolName: tab.symbol, accessibilityDescription: tab.title)
+            item.image = tab.image
+            item.image?.accessibilityDescription = tab.title
             tabs.addTabViewItem(item)
         }
         window = NSWindow(contentViewController: tabs)
@@ -38,7 +40,10 @@ final class SettingsWindowController {
         }
     }
 
-    func show() {
+    func show(_ tab: SettingsTab? = nil) {
+        if let tab, let index = SettingsTab.allCases.firstIndex(of: tab) {
+            tabs.selectedTabViewItemIndex = index
+        }
         NSApp.activate(ignoringOtherApps: true)
         window.makeKeyAndOrderFront(nil)
     }
@@ -62,22 +67,28 @@ private final class SettingsTabViewController: NSTabViewController {
     }
 }
 
-private enum SettingsTab: CaseIterable {
-    case general, shortcuts, exclusions
+/// 설정 창의 탭.
+enum SettingsTab: CaseIterable {
+    case general, shortcuts, exclusions, about
 
     var title: String {
         switch self {
         case .general: L("settings.tab.general")
         case .shortcuts: L("settings.tab.shortcuts")
         case .exclusions: L("settings.tab.exclusions")
+        case .about: L("settings.tab.about")
         }
     }
 
-    var symbol: String {
+    var image: NSImage {
         switch self {
-        case .general: "gearshape"
-        case .shortcuts: "keyboard"
-        case .exclusions: "nosign"
+        case .general: return Brand.tabIcon(symbol: "gearshape")
+        case .shortcuts: return Brand.tabIcon(symbol: "keyboard")
+        case .exclusions: return Brand.tabIcon(symbol: "nosign")
+        case .about:
+            let icon = NSApp.applicationIconImage.copy() as? NSImage ?? NSImage()
+            icon.size = Brand.tabIconSize
+            return icon
         }
     }
 
@@ -92,6 +103,7 @@ private enum SettingsTab: CaseIterable {
                     updater: updater, state: state, settings: settings, loginItems: loginItems, hotKeys: hotKeys))
         case .shortcuts: AnyView(ShortcutSettingsView(state: state, settings: settings, hotKeys: hotKeys))
         case .exclusions: AnyView(ExclusionSettingsView(settings: settings, hotKeys: hotKeys))
+        case .about: AnyView(AboutSettingsView(updater: updater, state: state))
         }
     }
 }

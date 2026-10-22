@@ -26,6 +26,7 @@
 "settings.tab.general" = "一般";
 "settings.tab.shortcuts" = "ショートカット";
 "settings.tab.exclusions" = "除外するアプリ";
+"settings.tab.about" = "情報";
 "settings.login" = "ログイン時に開く";
 "settings.login.approval" = "ログイン時に開く（承認が必要）";
 "settings.hotkeys" = "ショートカットを使用";
@@ -45,9 +46,18 @@
 "shortcut.registerFailed" = "登録できませんでした（ほかのアプリが使用中）";
 "shortcut.error.modifier" = "⌘、⌥、⌃ のいずれかを含めてください。";
 "shortcut.error.duplicate" = "もう一方のショートカットと同じです。";
+"shortcut.conflicts" = "このショートカットを使うアプリ";
+"shortcut.conflicts.scanning" = "実行中のアプリを確認中…";
+"shortcut.conflicts.none" = "重複するアプリはありません";
 
 "exclusions.help" = "これらのアプリが最前面にあるときは EleDocks のショートカットがオフになり、アプリ自体のショートカット（⌘M など）を使えます。ウインドウをしまうときも、これらのアプリのウインドウはスキップされます。";
 "exclusions.empty" = "除外するアプリはありません";
+"exclusions.empty.detail" = "すべてのアプリのウインドウが EleDocks で Dock に入ります。";
 "exclusions.add" = "アプリを追加";
 "exclusions.remove" = "アプリを削除";
 "exclusions.choose" = "アプリを選択…";
+
+"about.tagline" = "ウインドウを、エレガントに Dock へ。";
+"about.version" = "バージョン";
+"about.website" = "Webサイト";
+"about.donate" = "寄付する";
