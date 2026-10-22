@@ -1,0 +1,8 @@
+.build/
+build/
+*.app
+.claude/doc/
+releases/*.zip
+releases/*.delta
+releases/appcast.xml
+.DS_Store

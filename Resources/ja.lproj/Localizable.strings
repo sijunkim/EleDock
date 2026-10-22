@@ -1,0 +1,74 @@
+/* 응용 프로그램 폴더로 옮기기 */
+"move.title" = "EleDocks を“アプリケーション”フォルダに移動しますか?";
+"move.message" = "アップデートを正しく行うには、EleDocks を“アプリケーション”フォルダから実行する必要があります。";
+"move.confirm" = "“アプリケーション”フォルダに移動";
+"move.later" = "今はしない";
+"move.suppress" = "次回から確認しない";
+"move.failed" = "EleDocks を移動できませんでした。";
+"move.failed.info" = "Finder で“アプリケーション”フォルダに移動してください。";
+
+/* 메뉴 */
+"menu.windows.none" = "しまったウインドウはありません";
+"menu.windows.restoreAll" = "すべてを復元";
+"menu.permission.granted" = "アクセシビリティ: 許可済み";
+"menu.permission.required" = "アクセシビリティ: 許可が必要";
+"menu.permission.open" = "アクセシビリティ設定を開く";
+"menu.settings" = "設定…";
+"menu.about" = "EleDocks について";
+"menu.quit" = "EleDocks を終了";
+"login" = "ログイン時に開く";
+"login.approval" = "ログイン時に開く（承認が必要）";
+"hotkeys.enabled" = "ショートカットを使用";
+"hotkeys.failed" = "ショートカットを登録できませんでした（ほかのアプリが使用している可能性があります）";
+"update.check" = "アップデートを確認…";
+
+/* 설정 창 */
+"settings.tab.general" = "一般";
+"settings.tab.shortcuts" = "ショートカット";
+"settings.tab.animation" = "アニメーション";
+"settings.tab.exclusions" = "除外するアプリ";
+"settings.login" = "ログイン時に開く";
+"settings.login.approval" = "ログイン時に開く（承認が必要）";
+"settings.hotkeys" = "ショートカットを使用";
+"settings.holdToRepeat" = "長押しで連続実行";
+"settings.holdToRepeat.help" = "ショートカットを押し続けると、0.25秒ごとにウインドウを1つずつしまうか復元します。";
+"settings.autoUpdate" = "アップデートを自動的に確認";
+"settings.language" = "言語";
+"settings.language.system" = "システム設定に従う";
+"settings.language.restart" = "変更した言語は再起動後に適用されます。";
+"settings.relaunch" = "今すぐ再起動";
+
+"shortcut.minimize" = "しまう";
+"shortcut.restore" = "復元";
+"shortcut.help" = "ショートカットをクリックし、新しいキーを押します。Esc キーで取り消します。";
+"shortcut.reset" = "デフォルトに戻す";
+"shortcut.recording" = "ショートカットを入力…";
+"shortcut.registerFailed" = "登録できませんでした（ほかのアプリが使用中）";
+"shortcut.error.modifier" = "⌘、⌥、⌃ のいずれかを含めてください。";
+"shortcut.error.duplicate" = "もう一方のショートカットと同じです。";
+
+"exclusions.help" = "これらのアプリが最前面にあるときは EleDocks のショートカットがオフになり、アプリ自体のショートカット（⌘M など）を使えます。ウインドウをしまうときも、これらのアプリのウインドウはスキップされます。";
+"exclusions.empty" = "除外するアプリはありません";
+"exclusions.add" = "アプリを追加";
+"exclusions.remove" = "アプリを削除";
+"exclusions.choose" = "アプリを選択…";
+
+"animation.enabled" = "カスタムアニメーションを使用";
+"animation.speed" = "速度";
+"animation.speed.fast" = "速く";
+"animation.speed.slow" = "遅く";
+"animation.duration" = "%@秒";
+"animation.curve" = "効果";
+"animation.curve.easeIn" = "だんだん速く";
+"animation.curve.easeOut" = "だんだん遅く";
+"animation.curve.linear" = "一定";
+"animation.curve.easeInOut" = "なめらか";
+"animation.curve.spring" = "弾むように";
+"animation.help" = "オフのときや%@が許可されていないときは、macOS 標準のエフェクトでしまうか復元します。この権限は、しまうウインドウの外観をキャプチャするためだけに使用します。";
+"animation.unsupported" = "macOS 14 以降で使用できます。";
+"animation.permission.screen" = "画面収録";
+"animation.permission.screenAudio" = "画面収録とシステムオーディオ録音";
+"animation.permission.granted" = "許可済み";
+"animation.permission.required" = "許可が必要";
+"animation.permission.request" = "アクセスを要求…";
+"animation.permission.restart" = "許可した後、再起動が必要な場合があります。";

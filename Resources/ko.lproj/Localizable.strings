@@ -1,0 +1,74 @@
+/* 응용 프로그램 폴더로 옮기기 */
+"move.title" = "EleDocks를 응용 프로그램 폴더로 옮길까요?";
+"move.message" = "응용 프로그램 폴더에서 실행해야 업데이트가 정상 동작합니다.";
+"move.confirm" = "응용 프로그램 폴더로 옮기기";
+"move.later" = "나중에";
+"move.suppress" = "다시 묻지 않기";
+"move.failed" = "옮기지 못했습니다.";
+"move.failed.info" = "Finder에서 직접 응용 프로그램 폴더로 옮겨 주세요.";
+
+/* 메뉴 */
+"menu.windows.none" = "최소화된 창 없음";
+"menu.windows.restoreAll" = "모두 복원";
+"menu.permission.granted" = "손쉬운 사용 권한: 허용됨";
+"menu.permission.required" = "손쉬운 사용 권한: 필요함";
+"menu.permission.open" = "손쉬운 사용 설정 열기";
+"menu.settings" = "설정…";
+"menu.about" = "EleDocks 정보";
+"menu.quit" = "EleDocks 종료";
+"login" = "로그인 시 열기";
+"login.approval" = "로그인 시 열기 (승인 필요)";
+"hotkeys.enabled" = "단축키 사용";
+"hotkeys.failed" = "단축키 등록 실패 (다른 앱이 사용 중일 수 있음)";
+"update.check" = "업데이트 확인…";
+
+/* 설정 창 */
+"settings.tab.general" = "일반";
+"settings.tab.shortcuts" = "단축키";
+"settings.tab.animation" = "애니메이션";
+"settings.tab.exclusions" = "제외 앱";
+"settings.login" = "로그인 시 열기";
+"settings.login.approval" = "로그인 시 열기 (승인 필요)";
+"settings.hotkeys" = "단축키 사용";
+"settings.holdToRepeat" = "길게 눌러 연속 동작";
+"settings.holdToRepeat.help" = "단축키를 누르고 있으면 0.25초마다 창을 하나씩 최소화하거나 복원합니다.";
+"settings.autoUpdate" = "업데이트 자동 확인";
+"settings.language" = "언어";
+"settings.language.system" = "시스템 설정 따름";
+"settings.language.restart" = "다시 시작해야 적용됩니다.";
+"settings.relaunch" = "지금 다시 시작";
+
+"shortcut.minimize" = "최소화";
+"shortcut.restore" = "복원";
+"shortcut.help" = "단축키를 클릭한 뒤 새 조합을 누르세요. Esc를 누르면 취소됩니다.";
+"shortcut.reset" = "기본값 복원";
+"shortcut.recording" = "단축키 입력…";
+"shortcut.registerFailed" = "등록 실패 (다른 앱이 사용 중)";
+"shortcut.error.modifier" = "⌘, ⌥, ⌃ 중 하나를 포함하세요.";
+"shortcut.error.duplicate" = "다른 단축키와 같습니다.";
+
+"exclusions.help" = "목록의 앱이 맨 앞에 있으면 EleDocks 단축키가 꺼져 앱 자체 단축키(⌘M 등)를 쓸 수 있습니다. 최소화할 때도 이 앱들의 창은 건너뜁니다.";
+"exclusions.empty" = "제외한 앱 없음";
+"exclusions.add" = "앱 추가";
+"exclusions.remove" = "앱 제거";
+"exclusions.choose" = "앱 선택…";
+
+"animation.enabled" = "사용자 지정 애니메이션 사용";
+"animation.speed" = "속도";
+"animation.speed.fast" = "빠르게";
+"animation.speed.slow" = "느리게";
+"animation.duration" = "%@초";
+"animation.curve" = "효과";
+"animation.curve.easeIn" = "점점 빠르게";
+"animation.curve.easeOut" = "점점 느리게";
+"animation.curve.linear" = "일정하게";
+"animation.curve.easeInOut" = "부드럽게";
+"animation.curve.spring" = "튕기듯이";
+"animation.help" = "꺼져 있거나 %@ 권한이 없으면 macOS 기본 효과로 최소화·복원합니다. 이 권한은 최소화하는 창의 모습을 캡처하는 데만 씁니다.";
+"animation.unsupported" = "macOS 14 이상에서 사용할 수 있습니다.";
+"animation.permission.screen" = "화면 기록";
+"animation.permission.screenAudio" = "화면 및 시스템 오디오 녹음";
+"animation.permission.granted" = "허용됨";
+"animation.permission.required" = "필요함";
+"animation.permission.request" = "권한 요청…";
+"animation.permission.restart" = "허용한 뒤에는 다시 시작해야 적용될 수 있습니다.";

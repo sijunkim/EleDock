@@ -1,0 +1,74 @@
+/* 응용 프로그램 폴더로 옮기기 */
+"move.title" = "Move EleDocks to the Applications folder?";
+"move.message" = "EleDocks must run from the Applications folder for updates to work.";
+"move.confirm" = "Move to Applications Folder";
+"move.later" = "Not Now";
+"move.suppress" = "Don’t ask again";
+"move.failed" = "Couldn’t move EleDocks.";
+"move.failed.info" = "Move it to the Applications folder in Finder.";
+
+/* 메뉴 */
+"menu.windows.none" = "No Minimized Windows";
+"menu.windows.restoreAll" = "Restore All";
+"menu.permission.granted" = "Accessibility Access: Allowed";
+"menu.permission.required" = "Accessibility Access: Required";
+"menu.permission.open" = "Open Accessibility Settings";
+"menu.settings" = "Settings…";
+"menu.about" = "About EleDocks";
+"menu.quit" = "Quit EleDocks";
+"login" = "Open at Login";
+"login.approval" = "Open at Login (Approval Required)";
+"hotkeys.enabled" = "Enable Shortcuts";
+"hotkeys.failed" = "Shortcut registration failed (another app may be using it)";
+"update.check" = "Check for Updates…";
+
+/* 설정 창 */
+"settings.tab.general" = "General";
+"settings.tab.shortcuts" = "Shortcuts";
+"settings.tab.animation" = "Animation";
+"settings.tab.exclusions" = "Excluded Apps";
+"settings.login" = "Open at login";
+"settings.login.approval" = "Open at login (approval required)";
+"settings.hotkeys" = "Enable shortcuts";
+"settings.holdToRepeat" = "Repeat while holding shortcut";
+"settings.holdToRepeat.help" = "Holding a shortcut minimizes or restores one window every 0.25 seconds.";
+"settings.autoUpdate" = "Automatically check for updates";
+"settings.language" = "Language";
+"settings.language.system" = "Use System Setting";
+"settings.language.restart" = "The new language takes effect after EleDocks restarts.";
+"settings.relaunch" = "Restart Now";
+
+"shortcut.minimize" = "Minimize";
+"shortcut.restore" = "Restore";
+"shortcut.help" = "Click a shortcut, then press a new key combination. Press Esc to cancel.";
+"shortcut.reset" = "Restore Defaults";
+"shortcut.recording" = "Type Shortcut…";
+"shortcut.registerFailed" = "Couldn’t register (in use by another app)";
+"shortcut.error.modifier" = "Include ⌘, ⌥, or ⌃.";
+"shortcut.error.duplicate" = "Already used by the other shortcut.";
+
+"exclusions.help" = "When one of these apps is in front, EleDocks shortcuts are turned off so the app’s own shortcuts (such as ⌘M) work. Its windows are also skipped when minimizing.";
+"exclusions.empty" = "No Excluded Apps";
+"exclusions.add" = "Add App";
+"exclusions.remove" = "Remove App";
+"exclusions.choose" = "Choose App…";
+
+"animation.enabled" = "Use custom animation";
+"animation.speed" = "Speed";
+"animation.speed.fast" = "Fast";
+"animation.speed.slow" = "Slow";
+"animation.duration" = "%@ sec";
+"animation.curve" = "Effect";
+"animation.curve.easeIn" = "Ease In";
+"animation.curve.easeOut" = "Ease Out";
+"animation.curve.linear" = "Linear";
+"animation.curve.easeInOut" = "Ease In and Out";
+"animation.curve.spring" = "Bounce";
+"animation.help" = "When this is off or %@ isn’t allowed, windows minimize and restore with the standard macOS effect. The permission is used only to capture the window being minimized.";
+"animation.unsupported" = "Available on macOS 14 or later.";
+"animation.permission.screen" = "Screen Recording";
+"animation.permission.screenAudio" = "Screen & System Audio Recording";
+"animation.permission.granted" = "Allowed";
+"animation.permission.required" = "Required";
+"animation.permission.request" = "Request Access…";
+"animation.permission.restart" = "After allowing access, EleDocks may need to restart.";

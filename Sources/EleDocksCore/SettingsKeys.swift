@@ -1,0 +1,35 @@
+/// UserDefaults 에 저장하는 설정의 키와 기본값.
+public enum SettingsKeys {
+    /// "단축키 사용".
+    public static let hotKeysEnabled = "hotKeysEnabled"
+    /// "길게 눌러 연속 동작".
+    public static let holdToRepeat = "holdToRepeatEnabled"
+    /// 제외 앱 번들 ID 목록.
+    public static let excludedApps = "excludedBundleIDs"
+    /// 응용 프로그램 폴더 이동 안내 "다시 묻지 않기".
+    public static let suppressMoveAlert = "suppressMoveToApplicationsAlert"
+    /// 앱 표시 언어.
+    public static let appleLanguages = "AppleLanguages"
+    /// 직접 그리는 최소화·복원 애니메이션 사용.
+    public static let customAnimationEnabled = "customAnimationEnabled"
+    /// 직접 그리는 애니메이션 지속 시간(초).
+    public static let customAnimationDuration = "customAnimationDuration"
+    /// 직접 그리는 애니메이션 곡선(`AnimationCurve` 원시 값).
+    public static let customAnimationCurve = "customAnimationCurve"
+
+    /// 단축키 Carbon 키 코드.
+    public static func keyCode(_ kind: Shortcut.Kind) -> String { "\(kind.rawValue)KeyCode" }
+    /// 단축키 Carbon 수식키 마스크.
+    public static func modifiers(_ kind: Shortcut.Kind) -> String { "\(kind.rawValue)Modifiers" }
+
+    /// 저장된 제외 앱 목록에서 중복을 뺀다.
+    public static func excludedBundleIDs(stored: [String]) -> [String] {
+        var seen = Set<String>()
+        return stored.filter { seen.insert($0).inserted }
+    }
+
+    /// 저장값이 없을 때 쓰는 값.
+    public static let defaults: [String: Bool] = [
+        hotKeysEnabled: true, holdToRepeat: true, customAnimationEnabled: false,
+    ]
+}
