@@ -22,6 +22,21 @@
 "hotkeys.failed" = "Shortcut registration failed (another app may be using it)";
 "update.check" = "Check for Updates…";
 
+/* 메뉴 막대 */
+"menu.services" = "Services";
+"menu.hide" = "Hide EleDocks";
+"menu.hideOthers" = "Hide Others";
+"menu.showAll" = "Show All";
+"menu.edit" = "Edit";
+"menu.undo" = "Undo";
+"menu.cut" = "Cut";
+"menu.copy" = "Copy";
+"menu.paste" = "Paste";
+"menu.selectAll" = "Select All";
+"menu.window" = "Window";
+"menu.minimize" = "Minimize";
+"menu.close" = "Close";
+
 /* 설정 창 */
 "settings.tab.general" = "General";
 "settings.tab.shortcuts" = "Shortcuts";
@@ -60,4 +75,3 @@
 "about.tagline" = "Windows, elegantly into the Dock.";
 "about.version" = "Version";
 "about.website" = "Website";
-"about.donate" = "Donate";

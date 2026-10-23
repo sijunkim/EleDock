@@ -1,6 +1,5 @@
 import AppKit
 import ApplicationServices
-import Sparkle
 
 /// 메뉴바 아이콘과 메뉴.
 final class StatusMenu: NSObject, NSMenuDelegate {
@@ -19,12 +18,11 @@ final class StatusMenu: NSObject, NSMenuDelegate {
     private let state: AppState
     private let settings: AppSettings
     private let loginItems: LoginItemController
-    private let updates: UpdateController
-    private var settingsWindow: SettingsWindowController?
+    private let settingsWindow: SettingsWindowController
 
     init(
         tracker: WindowTracker, repeater: RepeatController, hotKeys: HotKeyCenter, state: AppState,
-        settings: AppSettings, loginItems: LoginItemController, updates: UpdateController
+        settings: AppSettings, loginItems: LoginItemController, settingsWindow: SettingsWindowController
     ) {
         self.tracker = tracker
         self.repeater = repeater
@@ -32,7 +30,7 @@ final class StatusMenu: NSObject, NSMenuDelegate {
         self.state = state
         self.settings = settings
         self.loginItems = loginItems
-        self.updates = updates
+        self.settingsWindow = settingsWindow
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         super.init()
         if let image = NSImage(systemSymbolName: "dock.arrow.up.rectangle", accessibilityDescription: "EleDocks")?
@@ -75,11 +73,6 @@ final class StatusMenu: NSObject, NSMenuDelegate {
         }
         menu.addItem(.separator())
         menu.addItem(NSMenuItem(title: L("menu.about"), action: #selector(showAbout), keyEquivalent: ""))
-        let update = NSMenuItem(
-            title: L("update.check"), action: #selector(SPUStandardUpdaterController.checkForUpdates(_:)),
-            keyEquivalent: "")
-        update.target = updates.standardController
-        menu.addItem(update)
         menu.addItem(.separator())
         menu.addItem(NSMenuItem(title: L("menu.settings"), action: #selector(showSettings), keyEquivalent: ","))
         menu.addItem(.separator())
@@ -127,19 +120,11 @@ final class StatusMenu: NSObject, NSMenuDelegate {
     }
 
     @objc private func showSettings() {
-        openSettings()
+        settingsWindow.show()
     }
 
     @objc private func showAbout() {
-        openSettings(.about)
-    }
-
-    private func openSettings(_ tab: SettingsTab? = nil) {
-        if settingsWindow == nil {
-            settingsWindow = SettingsWindowController(
-                updater: updates.updater, state: state, settings: settings, loginItems: loginItems, hotKeys: hotKeys)
-        }
-        settingsWindow?.show(tab)
+        settingsWindow.show(.about)
     }
 
     @objc private func openAccessibilitySettings() {

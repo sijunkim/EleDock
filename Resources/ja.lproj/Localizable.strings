@@ -22,6 +22,21 @@
 "hotkeys.failed" = "ショートカットを登録できませんでした（ほかのアプリが使用している可能性があります）";
 "update.check" = "アップデートを確認…";
 
+/* 메뉴 막대 */
+"menu.services" = "サービス";
+"menu.hide" = "EleDocks を非表示";
+"menu.hideOthers" = "ほかを非表示";
+"menu.showAll" = "すべてを表示";
+"menu.edit" = "編集";
+"menu.undo" = "取り消す";
+"menu.cut" = "カット";
+"menu.copy" = "コピー";
+"menu.paste" = "ペースト";
+"menu.selectAll" = "すべてを選択";
+"menu.window" = "ウインドウ";
+"menu.minimize" = "しまう";
+"menu.close" = "閉じる";
+
 /* 설정 창 */
 "settings.tab.general" = "一般";
 "settings.tab.shortcuts" = "ショートカット";
@@ -60,4 +75,3 @@
 "about.tagline" = "ウインドウを、エレガントに Dock へ。";
 "about.version" = "バージョン";
 "about.website" = "Webサイト";
-"about.donate" = "寄付する";

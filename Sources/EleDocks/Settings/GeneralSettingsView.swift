@@ -2,21 +2,16 @@ import EleDocksCore
 import Sparkle
 import SwiftUI
 
-/// 일반 탭: 언어, 로그인 항목, 단축키·연속 동작, 업데이트.
+/// 일반 섹션: 언어, 로그인 항목, 단축키·연속 동작, 업데이트.
 struct GeneralSettingsView: View {
     let updater: SPUUpdater?
-    @ObservedObject var state: AppState
     @ObservedObject var settings: AppSettings
     @ObservedObject var loginItems: LoginItemController
     let hotKeys: HotKeyCenter
     @StateObject private var model: GeneralSettingsModel
 
-    init(
-        updater: SPUUpdater?, state: AppState, settings: AppSettings, loginItems: LoginItemController,
-        hotKeys: HotKeyCenter
-    ) {
+    init(updater: SPUUpdater?, settings: AppSettings, loginItems: LoginItemController, hotKeys: HotKeyCenter) {
         self.updater = updater
-        self.state = state
         self.settings = settings
         self.loginItems = loginItems
         self.hotKeys = hotKeys
@@ -70,24 +65,14 @@ struct GeneralSettingsView: View {
                         })
                 )
                 .disabled(updater == nil)
-                HStack {
-                    Spacer()
-                    Button(L("update.check")) { updater?.checkForUpdates() }
-                        .disabled(!state.canCheckForUpdates)
-                }
             }
         }
         .formStyle(.grouped)
-        .frame(width: SettingsLayout.width, height: height)
         .onAppear { loginItems.refresh() }
-    }
-
-    private var height: CGFloat {
-        SettingsLayout.generalHeight + (settings.languageNeedsRelaunch ? SettingsLayout.relaunchRowHeight : 0)
     }
 }
 
-// 일반 탭의 화면 상태.
+// 일반 섹션의 화면 상태.
 private final class GeneralSettingsModel: ObservableObject {
     @Published var automaticallyChecks: Bool
 

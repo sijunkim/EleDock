@@ -1,35 +1,47 @@
 import AppKit
+import Combine
 import Sparkle
 import SwiftUI
 
-/// 툴바 탭 설정 창.
-final class SettingsWindowController {
+/// 사이드바로 섹션을 고르는 설정 창.
+final class SettingsWindowController: NSObject, NSToolbarDelegate {
     private let window: NSWindow
-    private let tabs: SettingsTabViewController
+    private let navigation: SettingsNavigation
+    private var titleObservation: AnyCancellable?
 
     init(
         updater: SPUUpdater?, state: AppState, settings: AppSettings, loginItems: LoginItemController,
         hotKeys: HotKeyCenter
     ) {
-        tabs = SettingsTabViewController(hotKeys: hotKeys)
-        tabs.tabStyle = .toolbar
-        for tab in SettingsTab.allCases {
-            let view = tab.view(
-                updater: updater, state: state, settings: settings, loginItems: loginItems, hotKeys: hotKeys)
-            let host = NSHostingController(rootView: view.tint(Brand.accent))
-            host.sizingOptions = .preferredContentSize
-            host.title = tab.title
-            let item = NSTabViewItem(viewController: host)
-            item.label = tab.title
-            item.image = tab.image
-            item.image?.accessibilityDescription = tab.title
-            tabs.addTabViewItem(item)
-        }
-        window = NSWindow(contentViewController: tabs)
-        window.styleMask = [.titled, .closable]
-        window.toolbarStyle = .preference
-        window.isReleasedWhenClosed = false
+        let navigation = SettingsNavigation()
+        let sidebar = NSHostingController(rootView: SettingsSidebar(navigation: navigation))
+        let detail = NSHostingController(
+            rootView: SettingsDetail(
+                navigation: navigation, updater: updater, state: state, settings: settings, loginItems: loginItems,
+                hotKeys: hotKeys
+            )
+            .tint(Brand.accent))
+        sidebar.sizingOptions = []
+        detail.sizingOptions = []
+        let sidebarItem = NSSplitViewItem(sidebarWithViewController: sidebar)
+        sidebarItem.canCollapse = false
+        sidebarItem.minimumThickness = SettingsLayout.sidebarWidth
+        sidebarItem.maximumThickness = SettingsLayout.sidebarWidth
+        let split = NSSplitViewController()
+        split.addSplitViewItem(sidebarItem)
+        split.addSplitViewItem(NSSplitViewItem(viewController: detail))
+        self.navigation = navigation
+        window = NSWindow(contentViewController: split)
+        super.init()
+        window.styleMask = [.titled, .closable, .miniaturizable, .fullSizeContentView]
+        let toolbar = NSToolbar()
+        toolbar.delegate = self
+        window.toolbar = toolbar
+        window.toolbarStyle = .unified
+        window.setContentSize(
+            NSSize(width: SettingsLayout.sidebarWidth + SettingsLayout.detailWidth, height: SettingsLayout.height))
         window.center()
+        titleObservation = navigation.$section.sink { [split] in split.title = $0.title }
         let nc = NotificationCenter.default
         for (name, object) in [
             (NSWindow.willCloseNotification, window), (NSApplication.didResignActiveNotification, nil),
@@ -40,35 +52,25 @@ final class SettingsWindowController {
         }
     }
 
-    func show(_ tab: SettingsTab? = nil) {
-        if let tab, let index = SettingsTab.allCases.firstIndex(of: tab) {
-            tabs.selectedTabViewItemIndex = index
+    func show(_ section: SettingsSection? = nil) {
+        if let section {
+            navigation.section = section
         }
         NSApp.activate(ignoringOtherApps: true)
         window.makeKeyAndOrderFront(nil)
     }
-}
 
-// 설정 창의 탭 컨트롤러.
-private final class SettingsTabViewController: NSTabViewController {
-    private let hotKeys: HotKeyCenter
-
-    init(hotKeys: HotKeyCenter) {
-        self.hotKeys = hotKeys
-        super.init(nibName: nil, bundle: nil)
+    func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
+        [.sidebarTrackingSeparator]
     }
 
-    @available(*, unavailable)
-    required init?(coder: NSCoder) { nil }
-
-    override func tabView(_ tabView: NSTabView, willSelect tabViewItem: NSTabViewItem?) {
-        super.tabView(tabView, willSelect: tabViewItem)
-        hotKeys.stopRecording()
+    func toolbarAllowedItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
+        [.sidebarTrackingSeparator]
     }
 }
 
-/// 설정 창의 탭.
-enum SettingsTab: CaseIterable {
+/// 설정 창의 섹션.
+enum SettingsSection: CaseIterable {
     case general, shortcuts, exclusions, about
 
     var title: String {
@@ -82,28 +84,59 @@ enum SettingsTab: CaseIterable {
 
     var image: NSImage {
         switch self {
-        case .general: return Brand.tabIcon(symbol: "gearshape")
-        case .shortcuts: return Brand.tabIcon(symbol: "keyboard")
-        case .exclusions: return Brand.tabIcon(symbol: "nosign")
+        case .general: return Brand.sidebarIcon(symbol: "gearshape")
+        case .shortcuts: return Brand.sidebarIcon(symbol: "keyboard")
+        case .exclusions: return Brand.sidebarIcon(symbol: "nosign")
         case .about:
             let icon = NSApp.applicationIconImage.copy() as? NSImage ?? NSImage()
-            icon.size = Brand.tabIconSize
+            icon.size = Brand.sidebarIconSize
             return icon
         }
     }
+}
 
-    func view(
-        updater: SPUUpdater?, state: AppState, settings: AppSettings, loginItems: LoginItemController,
-        hotKeys: HotKeyCenter
-    ) -> AnyView {
-        switch self {
+// 설정 창에서 고른 섹션.
+private final class SettingsNavigation: ObservableObject {
+    @Published var section = SettingsSection.general
+}
+
+// 섹션 목록 사이드바.
+private struct SettingsSidebar: View {
+    @ObservedObject var navigation: SettingsNavigation
+
+    var body: some View {
+        List(
+            SettingsSection.allCases, id: \.self,
+            selection: Binding(
+                get: { navigation.section },
+                set: { if let section = $0 { navigation.section = section } })
+        ) { section in
+            Label {
+                Text(section.title)
+            } icon: {
+                Image(nsImage: section.image)
+            }
+        }
+        .listStyle(.sidebar)
+    }
+}
+
+// 고른 섹션의 설정 화면.
+private struct SettingsDetail: View {
+    @ObservedObject var navigation: SettingsNavigation
+    let updater: SPUUpdater?
+    let state: AppState
+    let settings: AppSettings
+    let loginItems: LoginItemController
+    let hotKeys: HotKeyCenter
+
+    var body: some View {
+        switch navigation.section {
         case .general:
-            AnyView(
-                GeneralSettingsView(
-                    updater: updater, state: state, settings: settings, loginItems: loginItems, hotKeys: hotKeys))
-        case .shortcuts: AnyView(ShortcutSettingsView(state: state, settings: settings, hotKeys: hotKeys))
-        case .exclusions: AnyView(ExclusionSettingsView(settings: settings, hotKeys: hotKeys))
-        case .about: AnyView(AboutSettingsView(updater: updater, state: state))
+            GeneralSettingsView(updater: updater, settings: settings, loginItems: loginItems, hotKeys: hotKeys)
+        case .shortcuts: ShortcutSettingsView(state: state, settings: settings, hotKeys: hotKeys)
+        case .exclusions: ExclusionSettingsView(settings: settings, hotKeys: hotKeys)
+        case .about: AboutSettingsView(updater: updater, state: state)
         }
     }
 }

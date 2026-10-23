@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-/// 제외 앱 탭: 최소화에서 건너뛸 앱 목록.
+/// 제외 앱 섹션: 최소화에서 건너뛸 앱 목록.
 struct ExclusionSettingsView: View {
     @ObservedObject var settings: AppSettings
     let hotKeys: HotKeyCenter
@@ -38,7 +38,6 @@ struct ExclusionSettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: SettingsLayout.width, height: SettingsLayout.exclusionsHeight)
     }
 
     private func removeSelected() {

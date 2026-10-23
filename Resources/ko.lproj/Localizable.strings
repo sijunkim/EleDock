@@ -14,13 +14,28 @@
 "menu.permission.required" = "손쉬운 사용 권한: 필요함";
 "menu.permission.open" = "손쉬운 사용 설정 열기";
 "menu.settings" = "설정…";
-"menu.about" = "EleDocks 정보";
+"menu.about" = "EleDocks에 관하여";
 "menu.quit" = "EleDocks 종료";
 "login" = "로그인 시 열기";
 "login.approval" = "로그인 시 열기 (승인 필요)";
 "hotkeys.enabled" = "단축키 사용";
 "hotkeys.failed" = "단축키 등록 실패 (다른 앱이 사용 중일 수 있음)";
 "update.check" = "업데이트 확인…";
+
+/* 메뉴 막대 */
+"menu.services" = "서비스";
+"menu.hide" = "EleDocks 가리기";
+"menu.hideOthers" = "기타 가리기";
+"menu.showAll" = "모두 보기";
+"menu.edit" = "편집";
+"menu.undo" = "실행 취소";
+"menu.cut" = "오려두기";
+"menu.copy" = "복사하기";
+"menu.paste" = "붙여넣기";
+"menu.selectAll" = "전체 선택";
+"menu.window" = "윈도우";
+"menu.minimize" = "최소화";
+"menu.close" = "닫기";
 
 /* 설정 창 */
 "settings.tab.general" = "일반";
@@ -60,4 +75,3 @@
 "about.tagline" = "창을 우아하게, Dock으로.";
 "about.version" = "버전";
 "about.website" = "웹사이트";
-"about.donate" = "후원하기";

@@ -12,9 +12,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var hotKeys: HotKeyCenter?
     private var updates: UpdateController?
     private var statusMenu: StatusMenu?
+    private var settingsWindow: SettingsWindowController?
     private var trackerStarted = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        let propData = NSAppleEventManager.shared().currentAppleEvent?.paramDescriptor(forKeyword: keyAEPropData)
+        let launchedAsLoginItem = propData?.enumCodeValue == keyAELaunchedAsLogInItem
         AXUIElement.systemWide.setMessagingTimeout(Self.axMessagingTimeout)
         let settings = AppSettings(defaults: .standard, domain: Bundle.main.bundleIdentifier ?? "")
         if ApplicationMover.moveIfNeeded(settings: settings) { return }
@@ -28,9 +31,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         self.updates = updates
         self.tracker = tracker
         self.hotKeys = hotKeys
+        let settingsWindow = SettingsWindowController(
+            updater: updates.updater, state: state, settings: settings, loginItems: loginItems, hotKeys: hotKeys)
+        self.settingsWindow = settingsWindow
+        MainMenu.install(settingsWindow: settingsWindow, updates: updates)
         statusMenu = StatusMenu(
             tracker: tracker, repeater: repeater, hotKeys: hotKeys, state: state, settings: settings,
-            loginItems: loginItems, updates: updates)
+            loginItems: loginItems, settingsWindow: settingsWindow)
 
         hotKeys.install()
         _ = NSWorkspace.shared.notificationCenter.addObserver(
@@ -56,6 +63,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         RunLoop.main.add(timer, forMode: .common)
+        if !launchedAsLoginItem {
+            settingsWindow.show()
+        }
+    }
+
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        if !flag {
+            settingsWindow?.show()
+        }
+        return true
     }
 
     private func trustGranted() {

@@ -2,7 +2,7 @@ import AppKit
 import Sparkle
 import SwiftUI
 
-/// 정보 탭: 앱 아이콘, 워드마크, 버전, 업데이트 확인.
+/// 정보 섹션: 앱 아이콘, 워드마크, 버전, 업데이트 확인.
 struct AboutSettingsView: View {
     let updater: SPUUpdater?
     @ObservedObject var state: AppState
@@ -47,10 +47,7 @@ struct AboutSettingsView: View {
                 .padding(.bottom, SettingsLayout.aboutSpacing)
             } footer: {
                 VStack(spacing: SettingsLayout.aboutSpacing) {
-                    HStack(spacing: SettingsLayout.aboutLinkSpacing) {
-                        Text(L("about.website"))
-                        Text(L("about.donate"))
-                    }
+                    Text(L("about.website"))
                     Text("© 2026 EleDocks")
                         .font(.caption)
                 }
@@ -60,7 +57,6 @@ struct AboutSettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: SettingsLayout.width, height: SettingsLayout.aboutHeight)
     }
 
     private var version: String {

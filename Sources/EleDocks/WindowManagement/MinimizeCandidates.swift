@@ -18,7 +18,7 @@ enum MinimizeCandidates {
         }
         let frontmost = NSWorkspace.shared.frontmostApplication?.processIdentifier
         let pids = MinimizeOrder.pids(zOrder: zOrder, frontmost: frontmost) { pid in
-            guard let app = NSRunningApplication(processIdentifier: pid) else { return false }
+            guard pid != getpid(), let app = NSRunningApplication(processIdentifier: pid) else { return false }
             return MinimizeOrder.isCandidate(
                 isRegular: app.activationPolicy == .regular, isExcluded: settings.isExcluded(app.bundleIdentifier))
         }

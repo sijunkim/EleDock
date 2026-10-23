@@ -19,7 +19,7 @@ struct ShortcutRecorder: View {
                 recording ? stop() : start()
             } label: {
                 Text(recording ? L("shortcut.recording") : settings.shortcut(kind).displayString)
-                    .frame(minWidth: SettingsLayout.recorderMinWidth)
+                    .frame(width: SettingsLayout.shortcutButtonWidth)
             }
             .buttonStyle(.bordered)
             if let message {
@@ -28,7 +28,6 @@ struct ShortcutRecorder: View {
                 Text(L("shortcut.registerFailed")).font(.caption).foregroundStyle(.red)
             }
         }
-        .preference(key: RecorderMessageCount.self, value: message != nil || failed ? 1 : 0)
         .onDisappear(perform: stop)
     }
 

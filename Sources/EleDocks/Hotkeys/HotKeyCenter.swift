@@ -38,7 +38,12 @@ final class HotKeyCenter {
 
     fileprivate func handle(_ kind: Shortcut.Kind, eventKind: UInt32) {
         switch eventKind {
-        case UInt32(kEventHotKeyPressed): repeater.start(kind)
+        case UInt32(kEventHotKeyPressed):
+            if kind == .minimize, NSApp.isActive {
+                NSApp.keyWindow?.performMiniaturize(nil)
+            } else {
+                repeater.start(kind)
+            }
         case UInt32(kEventHotKeyReleased): repeater.stop()
         default: break
         }

@@ -105,7 +105,7 @@ final class MinimizeObserver {
 
     private func observe(_ app: NSRunningApplication) -> RegistrationOutcome {
         let pid = app.processIdentifier
-        guard app.activationPolicy == .regular, observers[pid] == nil else { return .registered }
+        guard app.activationPolicy == .regular, pid != getpid(), observers[pid] == nil else { return .registered }
 
         guard let observer = try? AXObserver.make(pid: pid, callback: axCallback) else { return .failed }
         let appElement = AXUIElement.application(pid: pid)
