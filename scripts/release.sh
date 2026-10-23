@@ -1,5 +1,5 @@
 #!/bin/bash
-# 릴리스: Developer ID 서명·공증·staple·Sparkle appcast 생성
+# 릴리스: Developer ID 서명·공증·staple·Sparkle appcast·DMG 생성
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -10,6 +10,7 @@ cd "$(dirname "$0")/.."
 : "${VERSION:?VERSION 이 필요하다 (예: 1.0.1)}" "${BUILD:?BUILD 가 필요하다 (예: 2)}"
 case "$DOWNLOAD_URL_PREFIX" in */) ;; *) DOWNLOAD_URL_PREFIX="$DOWNLOAD_URL_PREFIX/" ;; esac
 export SIGN_ID VERSION BUILD SU_FEED_URL SU_PUBLIC_ED_KEY
+command -v create-dmg >/dev/null || { echo "create-dmg 가 필요하다 (brew install create-dmg)" >&2; exit 1; }
 
 if [ ! -f "releases/EleDocks-$VERSION.html" ] && [ ! -f "releases/EleDocks-$VERSION.md" ] && [ ! -f "releases/EleDocks-$VERSION.txt" ]; then
     echo "경고: releases/EleDocks-$VERSION.html, .md 또는 .txt 릴리스 노트가 없다" >&2
@@ -35,4 +36,10 @@ mkdir -p releases
 rm -f "releases/EleDocks-$VERSION.zip"
 ditto -c -k --keepParent "$APP" "releases/EleDocks-$VERSION.zip"
 .build/artifacts/sparkle/Sparkle/bin/generate_appcast releases/ --download-url-prefix "$DOWNLOAD_URL_PREFIX" --embed-release-notes
-echo "Released releases/EleDocks-$VERSION.zip, releases/appcast.xml"
+
+DMG=build/EleDocks-$VERSION.dmg
+scripts/make_dmg.sh "$APP" "$DMG"
+codesign --timestamp -s "$SIGN_ID" "$DMG"
+xcrun notarytool submit "$DMG" --keychain-profile "${NOTARY_PROFILE:-EleDocks}" --wait
+xcrun stapler staple "$DMG"
+echo "Released $DMG, releases/EleDocks-$VERSION.zip, releases/appcast.xml"
