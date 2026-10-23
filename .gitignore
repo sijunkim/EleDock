@@ -1,8 +1,8 @@
 .build/
 build/
 *.app
-.claude/doc/
+.claude/
+.playwright-mcp/
 releases/*.zip
 releases/*.delta
-releases/appcast.xml
 .DS_Store
