@@ -21,6 +21,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         AXUIElement.systemWide.setMessagingTimeout(Self.axMessagingTimeout)
         let settings = AppSettings(defaults: .standard, domain: Bundle.main.bundleIdentifier ?? "")
         if ApplicationMover.moveIfNeeded(settings: settings) { return }
+        if !launchedAsLoginItem {
+            InstallerCleanup.offerIfNeeded()
+        }
 
         let state = AppState()
         let loginItems = LoginItemController()

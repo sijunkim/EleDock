@@ -3,7 +3,7 @@ import Sparkle
 
 /// Sparkle 업데이터를 관리한다.
 final class UpdateController {
-    /// 메뉴 "업데이트 확인…" 의 target.
+    /// 메뉴 "업데이트 확인" 의 target.
     let standardController: SPUStandardUpdaterController
     private let userDriverDelegate: ScheduledUpdateActivator
     private let hasFeed: Bool

@@ -7,6 +7,13 @@
 "move.failed" = "EleDocks を移動できませんでした。";
 "move.failed.info" = "Finder で“アプリケーション”フォルダに移動してください。";
 
+/* 설치 디스크 정리 */
+"cleanup.title" = "インストールディスクを取り出し、ダウンロードした DMG ファイルをゴミ箱に入れますか?";
+"cleanup.message" = "EleDocks のインストールが完了したため、DMG ファイルは不要になりました。";
+"cleanup.ejectAndTrash" = "取り出してゴミ箱に入れる";
+"cleanup.eject" = "ディスクだけ取り出す";
+"cleanup.keep" = "そのままにする";
+
 /* 메뉴 */
 "menu.windows.none" = "しまったウインドウはありません";
 "menu.windows.restoreAll" = "すべてを復元";
@@ -20,7 +27,7 @@
 "login.approval" = "ログイン時に開く（承認が必要）";
 "hotkeys.enabled" = "ショートカットを使用";
 "hotkeys.failed" = "ショートカットを登録できませんでした（ほかのアプリが使用している可能性があります）";
-"update.check" = "アップデートを確認…";
+"update.check" = "アップデートを確認";
 
 /* 메뉴 막대 */
 "menu.services" = "サービス";

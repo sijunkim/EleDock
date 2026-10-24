@@ -7,6 +7,13 @@
 "move.failed" = "Couldn’t move EleDocks.";
 "move.failed.info" = "Move it to the Applications folder in Finder.";
 
+/* 설치 디스크 정리 */
+"cleanup.title" = "Eject the installer disk and move the downloaded DMG file to the Trash?";
+"cleanup.message" = "EleDocks is installed, so the DMG file is no longer needed.";
+"cleanup.ejectAndTrash" = "Eject and Move to Trash";
+"cleanup.eject" = "Eject Disk Only";
+"cleanup.keep" = "Keep";
+
 /* 메뉴 */
 "menu.windows.none" = "No Minimized Windows";
 "menu.windows.restoreAll" = "Restore All";
@@ -20,7 +27,7 @@
 "login.approval" = "Open at Login (Approval Required)";
 "hotkeys.enabled" = "Enable Shortcuts";
 "hotkeys.failed" = "Shortcut registration failed (another app may be using it)";
-"update.check" = "Check for Updates…";
+"update.check" = "Check for Updates";
 
 /* 메뉴 막대 */
 "menu.services" = "Services";
