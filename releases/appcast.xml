@@ -19,6 +19,12 @@
 - 설치 디스크가 붙어 있는 상태로 EleDocks를 실행하면 디스크를 꺼내고 내려받은 DMG 파일을 휴지통으로 옮길지 묻습니다.
 - Finder에서 숨김 파일을 표시해도 디스크 이미지 창에 스크롤이 생기지 않습니다.
 - "업데이트 확인" 문구에서 말줄임표를 뺐습니다.
+
+---
+
+- EleDocks の起動時にインストールディスクがマウントされたままの場合、ディスクを取り出し、ダウンロードした DMG ファイルをゴミ箱に入れるかどうかを確認するようになりました。
+- Finder で不可視ファイルを表示しても、ディスクイメージのウインドウがスクロールしなくなりました。
+- 「アップデートを確認」の末尾に省略記号が付かなくなりました。
 ]]></description>
             <enclosure url="https://github.com/sijunkim/EleDocks/releases/download/v1.0.1/EleDocks-1.0.1.zip" length="2688657" type="application/octet-stream" sparkle:edSignature="1eQPPR+SIRXzp4vq5ndpOak1xCuOR4fkfrXj9B2JIfM3g3h3wUP7jSmtFBfYX6VQxLR7W0T1/8ZJYKdtel93CA=="/>
             <sparkle:deltas>
@@ -42,6 +48,12 @@
 - 첫 릴리스입니다.
 - ⌘M으로 창을 하나씩 Dock에 최소화하고, ⇧⌘M으로 최근 순서대로 복원합니다.
 - 단축키를 누르고 있으면 연속으로 동작합니다.
+
+---
+
+- 最初のリリースです。
+- ⌘M でウインドウを1つずつ Dock にしまい、⇧⌘M でしまったときと逆の順番に復元します。
+- ショートカットを押し続けると連続で実行されます。
 ]]></description>
             <enclosure url="https://github.com/sijunkim/EleDocks/releases/download/v1.0.0/EleDocks-1.0.0.zip" length="1903099" type="application/octet-stream" sparkle:edSignature="2uwFLYOENQieKjVOYhC//9RvPBRfqWNFi8TM5vxIKicHCcPCcSCPRjZsKfPPiV5M+c0F401hueeyevonp7F1BA=="/>
         </item>
