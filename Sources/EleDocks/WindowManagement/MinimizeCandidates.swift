@@ -1,5 +1,4 @@
 import AppKit
-import ApplicationServices
 import EleDocksCore
 
 /// 최소화할 창 후보를 화면 앞쪽 순서로 구한다.
@@ -18,51 +17,27 @@ enum MinimizeCandidates {
         }
         let frontmost = NSWorkspace.shared.frontmostApplication?.processIdentifier
         let pids = MinimizeOrder.pids(zOrder: zOrder, frontmost: frontmost) { pid in
-            guard pid != getpid(), let app = NSRunningApplication(processIdentifier: pid) else { return false }
+            guard let app = NSRunningApplication(processIdentifier: pid) else { return false }
             return MinimizeOrder.isCandidate(
                 isRegular: app.activationPolicy == .regular, isExcluded: settings.isExcluded(app.bundleIdentifier))
         }
         return MinimizeOrder.windows(pids: pids, frontmost: frontmost) { pid -> [WindowEntry]? in
-            let appElement = AXUIElement.application(pid: pid)
-            var windows: [AXUIElement]
+            var windows: [ManagedWindow]
             do throws(AccessibilityError) {
-                windows = try appElement.withMessagingTimeout(WindowTracker.callTimeout) {
-                    () throws(AccessibilityError) in try appElement.windows
-                }
+                windows = try ManagedWindow.windows(of: pid)
             } catch .cannotComplete {
                 return nil
             } catch {
                 return []
             }
-            if pid == frontmost,
-                let focusedWindow = appElement.withMessagingTimeout(
-                    WindowTracker.callTimeout, { appElement.focusedWindow })
-            {
-                windows.removeAll { $0 == focusedWindow }
-                windows.insert(focusedWindow, at: 0)
+            if pid == frontmost, let focused = try? ManagedWindow.focused(of: pid) {
+                windows.removeAll { $0 == focused }
+                windows.insert(focused, at: 0)
             }
             do {
-                return try windows.filter(isCandidate).map { WindowEntry(pid: pid, window: $0) }
+                return try windows.filter { try $0.isMinimizeCandidate }.map { WindowEntry(pid: pid, window: $0) }
             } catch {
                 return nil
-            }
-        }
-    }
-
-    // 최소화되지 않은 표준 창인지 본다.
-    private static func isCandidate(_ window: AXUIElement) throws(AccessibilityError) -> Bool {
-        try window.withMessagingTimeout(WindowTracker.callTimeout) { () throws(AccessibilityError) in
-            do throws(AccessibilityError) {
-                guard try !window.minimizedAttribute else { return false }
-            } catch .cannotComplete {
-                throw .cannotComplete
-            } catch {}
-            do throws(AccessibilityError) {
-                return try window.attribute(kAXSubroleAttribute) as? String == kAXStandardWindowSubrole
-            } catch .cannotComplete {
-                throw .cannotComplete
-            } catch {
-                return false
             }
         }
     }

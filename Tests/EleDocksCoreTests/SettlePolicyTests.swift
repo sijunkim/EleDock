@@ -137,6 +137,24 @@ struct RestoreConfirmationsTests {
         confirmations.discard { $0.hasPrefix("a") }
         #expect(confirmations.resolve(phase: .expired, minimizedState: { _ in true }) == ["b1"])
     }
+
+    @Test func confirmRightAfterRecordStaysConfirmed() {
+        var confirmations = confirmations(["a"])
+        confirmations.confirm("a")
+        #expect(confirmations.isResolved)
+        #expect(confirmations.focusTarget == "a")
+        #expect(confirmations.resolve(phase: .expired, minimizedState: { _ in true }).isEmpty)
+    }
+
+    @Test func failedRecordIsRevertedToEarlierState() {
+        var confirmations = confirmations(["a"])
+        let recorded = confirmations
+        confirmations.record("a")
+        confirmations.record("b")
+        confirmations = recorded
+        #expect(confirmations.unconfirmed == ["a"])
+        #expect(confirmations.resolve(phase: .expired, minimizedState: { _ in true }) == ["a"])
+    }
 }
 
 struct MinimizeFocusTests {

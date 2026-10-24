@@ -125,4 +125,20 @@ struct MinimizeConfirmationsTests {
         #expect(resend.isEmpty)
         #expect(confirmations.unconfirmed == ["b"])
     }
+
+    @Test func confirmRightAfterRecordStaysConfirmed() {
+        var confirmations = confirmations(["a"])
+        #expect(confirmations.confirm("a") == nil)
+        #expect(confirmations.isResolved)
+        #expect(
+            confirmations.resolve(phase: .expired, minimizedState: { _ in false }, canResend: { _ in true }).isEmpty)
+    }
+
+    @Test func failedRecordIsRevertedToEarlierState() {
+        var confirmations = confirmations(["a"])
+        let recorded = confirmations
+        confirmations.record("b")
+        confirmations = recorded
+        #expect(confirmations.unconfirmed == ["a"])
+    }
 }

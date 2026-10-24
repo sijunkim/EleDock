@@ -13,7 +13,7 @@ struct ExclusionSettingsView: View {
                 List(settings.excludedBundleIDs, id: \.self, selection: $model.selection) { bundleID in
                     AppRow(bundleID: bundleID)
                 }
-                .frame(height: SettingsLayout.exclusionListHeight)
+                .frame(minHeight: SettingsLayout.exclusionListMinHeight)
                 .overlay {
                     if settings.excludedBundleIDs.isEmpty {
                         ExclusionsEmptyView()
@@ -63,8 +63,7 @@ struct ExclusionSettingsView: View {
     private func runningApps() -> [NSRunningApplication] {
         NSWorkspace.shared.runningApplications
             .filter {
-                $0.activationPolicy == .regular && $0.processIdentifier != getpid()
-                    && $0.bundleIdentifier.map { !settings.isExcluded($0) } == true
+                $0.activationPolicy == .regular && $0.bundleIdentifier.map { !settings.isExcluded($0) } == true
             }
             .sorted { ($0.localizedName ?? "").localizedStandardCompare($1.localizedName ?? "") == .orderedAscending }
     }

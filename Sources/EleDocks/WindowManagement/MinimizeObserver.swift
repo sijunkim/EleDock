@@ -11,7 +11,7 @@ final class MinimizeObserver {
         /// 관찰을 시작할 때 이미 최소화돼 있던 창.
         case alreadyMinimized(WindowEntry)
         /// 창이 복원됐거나 사라졌다.
-        case gone(AXUIElement)
+        case gone(ManagedWindow)
         /// 앱이 종료돼 관찰을 그만뒀다.
         case forgotten(pid_t)
     }
@@ -26,6 +26,7 @@ final class MinimizeObserver {
 
     private var observers: [pid_t: AXObserver] = [:]
     private var workspaceTokens: [NSObjectProtocol] = []
+    private var windowTokens: [NSObjectProtocol] = []
     /// 소멸 알림 등록을 기다리는 창.
     private var deferred = DeferredRegistrations<AXUIElement, pid_t>(group: \.pid)
     /// 관찰 시작을 미룬 앱.
@@ -58,6 +59,29 @@ final class MinimizeObserver {
                 let pid = app.processIdentifier
                 MainActor.assumeIsolated { self.forget(pid: pid) }
             })
+        observeOwnWindows()
+    }
+
+    // 이 앱 창의 최소화·복원·닫기를 관찰한다.
+    private func observeOwnWindows() {
+        for window in NSApp.windows where window.isMiniaturized {
+            onEvent(.alreadyMinimized(WindowEntry(pid: getpid(), window: .own(window))))
+        }
+        for name in [
+            NSWindow.didMiniaturizeNotification, NSWindow.didDeminiaturizeNotification,
+            NSWindow.willCloseNotification,
+        ] {
+            let minimized = name == NSWindow.didMiniaturizeNotification
+            windowTokens.append(
+                NotificationCenter.default.addObserver(forName: name, object: nil, queue: .main) { note in
+                    let window = note.object as? NSWindow
+                    MainActor.assumeIsolated {
+                        guard let window else { return }
+                        let entry = WindowEntry(pid: getpid(), window: .own(window))
+                        self.onEvent(minimized ? .minimized(entry) : .gone(entry.window))
+                    }
+                })
+        }
     }
 
     // 관찰을 모두 해제한다.
@@ -65,6 +89,8 @@ final class MinimizeObserver {
         let nc = NSWorkspace.shared.notificationCenter
         workspaceTokens.forEach(nc.removeObserver)
         workspaceTokens = []
+        windowTokens.forEach(NotificationCenter.default.removeObserver)
+        windowTokens = []
         for observer in observers.values {
             CFRunLoopRemoveSource(CFRunLoopGetMain(), observer.runLoopSource, .commonModes)
         }
@@ -135,7 +161,7 @@ final class MinimizeObserver {
             try? window.withMessagingTimeout(Self.registrationTimeout) { () throws(AccessibilityError) in
                 try observer.add(kAXUIElementDestroyedNotification, for: window, refcon: refcon)
             }
-            onEvent(.alreadyMinimized(WindowEntry(pid: pid, window: window)))
+            onEvent(.alreadyMinimized(WindowEntry(pid: pid, window: .ax(window))))
         }
         return .registered
     }
@@ -152,12 +178,12 @@ final class MinimizeObserver {
     fileprivate func handle(element: AXUIElement, notification: String) {
         switch notification {
         case kAXWindowMiniaturizedNotification:
-            onEvent(.minimized(WindowEntry(pid: element.pid, window: element)))
+            onEvent(.minimized(WindowEntry(pid: element.pid, window: .ax(element))))
             deferred.add(element)
             if !isRepeating { flushDeferred() }
         case kAXWindowDeminiaturizedNotification, kAXUIElementDestroyedNotification:
             deferred.remove(element)
-            onEvent(.gone(element))
+            onEvent(.gone(.ax(element)))
         default:
             break
         }
@@ -166,7 +192,7 @@ final class MinimizeObserver {
     // 미룬 소멸 알림을 등록한다.
     private func flushDeferred() {
         for window in deferred.flush(register: registerDestroyed) {
-            onEvent(.gone(window))
+            onEvent(.gone(.ax(window)))
         }
         if !deferred.isEmpty || !deferredApps.isEmpty { scheduleRetry() }
     }

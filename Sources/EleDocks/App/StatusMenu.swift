@@ -104,11 +104,9 @@ final class StatusMenu: NSObject, NSMenuDelegate {
     }
 
     @objc private func restoreWindow(_ sender: NSMenuItem) {
-        guard let object = sender.representedObject, CFGetTypeID(object as CFTypeRef) == AXUIElementGetTypeID() else {
-            return
-        }
+        guard let window = sender.representedObject as? ManagedWindow else { return }
         repeater.stop()
-        tracker.restore(window: object as! AXUIElement)
+        tracker.restore(window: window)
     }
 
     @objc private func restoreAllWindows() {

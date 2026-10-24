@@ -1,3 +1,4 @@
+import CoreGraphics
 import EleDocksCore
 import Foundation
 
@@ -26,7 +27,10 @@ final class RepeatController {
         let start = Date()
         tick(mode)
         guard settings.holdToRepeat else { return }
-        schedule(from: start) { self.tick(mode) }
+        schedule(from: start) {
+            guard self.isHeld(kind) else { return self.stop() }
+            self.tick(mode)
+        }
     }
 
     func stop() {
@@ -63,6 +67,11 @@ final class RepeatController {
         }
         RunLoop.main.add(timer, forMode: .common)
         self.timer = timer
+    }
+
+    // 단축키가 지금 눌려 있는지.
+    private func isHeld(_ kind: Shortcut.Kind) -> Bool {
+        CGEventSource.keyState(.combinedSessionState, key: CGKeyCode(settings.shortcut(kind).keyCode))
     }
 
     private func tick(_ mode: RepeatMode) {

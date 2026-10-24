@@ -11,9 +11,10 @@ enum SettingsLayout {
     static let wordmarkDocksSize: CGFloat = 26
     /// "ELEGANCE + DOCK" 자간.
     static let brandTracking: CGFloat = 3
-    static let exclusionListHeight: CGFloat = 180
-    /// "이 단축키를 쓰는 앱" 목록 높이.
-    static let conflictListHeight: CGFloat = 96
+    /// 제외 앱 목록 최소 높이.
+    static let exclusionListMinHeight: CGFloat = 180
+    /// "이 단축키를 쓰는 앱" 목록 최소 높이.
+    static let conflictListMinHeight: CGFloat = 96
     static let exclusionButtonSpacing: CGFloat = 12
     static let appIconSize: CGFloat = 20
     static let emptySpacing: CGFloat = 12

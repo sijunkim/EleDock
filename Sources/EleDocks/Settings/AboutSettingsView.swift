@@ -24,7 +24,7 @@ struct AboutSettingsView: View {
                         .resizable()
                         .frame(width: SettingsLayout.aboutIconSize, height: SettingsLayout.aboutIconSize)
                     HStack(alignment: .firstTextBaseline, spacing: 0) {
-                        Text("Ele")
+                        Text(L("about.wordmark.ele"))
                             .font(
                                 .system(size: SettingsLayout.wordmarkEleSize, weight: .semibold, design: .serif)
                                     .italic()
@@ -33,10 +33,10 @@ struct AboutSettingsView: View {
                                 LinearGradient(
                                     colors: [Color(nsColor: Brand.gradientTop), Color(nsColor: Brand.gradientBottom)],
                                     startPoint: .top, endPoint: .bottom))
-                        Text("Docks")
+                        Text(L("about.wordmark.docks"))
                             .font(.system(size: SettingsLayout.wordmarkDocksSize, weight: .semibold))
                     }
-                    Text("ELEGANCE + DOCK")
+                    Text(L("about.wordmark.meaning"))
                         .font(.caption)
                         .tracking(SettingsLayout.brandTracking)
                         .foregroundStyle(.secondary)
@@ -48,7 +48,7 @@ struct AboutSettingsView: View {
             } footer: {
                 VStack(spacing: SettingsLayout.aboutSpacing) {
                     Text(L("about.website"))
-                    Text("© 2026 EleDocks")
+                    Text(L("about.copyright"))
                         .font(.caption)
                 }
                 .foregroundStyle(.secondary)

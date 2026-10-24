@@ -46,7 +46,7 @@ struct MenuConflictsSection: View {
             List(model.conflicts) { conflict in
                 AppRow(bundleID: conflict.bundleID, detail: conflict.detail)
             }
-            .frame(height: SettingsLayout.conflictListHeight)
+            .frame(minHeight: SettingsLayout.conflictListMinHeight)
             .overlay {
                 if model.isScanning {
                     HStack {

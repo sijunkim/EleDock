@@ -9,23 +9,8 @@ extension AXUIElement {
         }
     }
 
-    var subrole: String? {
-        (try? attribute(kAXSubroleAttribute)) as? String
-    }
-
-    var focusedWindow: AXUIElement? {
-        guard let value = try? attribute(kAXFocusedWindowAttribute), CFGetTypeID(value) == AXUIElementGetTypeID()
-        else { return nil }
-        return (value as! AXUIElement)
-    }
-
     var isMinimized: Bool {
-        minimizedState == true
-    }
-
-    /// 창의 최소화 여부.
-    var minimizedState: Bool? {
-        try? minimizedAttribute
+        (try? minimizedAttribute) == true
     }
 
     /// 오류를 구분해 읽은 창의 최소화 여부.
