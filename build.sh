@@ -26,6 +26,7 @@ vtool -arch arm64 -set-build-version macos 13.0 "$SDK_VERSION" -replace \
 strip -S -x "$APP/Contents/MacOS/EleDocks"
 ditto "$BIN/Sparkle.framework" "$APP/Contents/Frameworks/Sparkle.framework"
 cp Resources/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
+cp Resources/dmg-background.tiff "$APP/Contents/Resources/dmg-background.tiff"
 LOCALIZATIONS=""
 for lproj in Resources/*.lproj; do
     cp -R "$lproj" "$APP/Contents/Resources/"
