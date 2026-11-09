@@ -5,15 +5,13 @@ let canvas = CGSize(width: 660, height: 400)
 let brandTop = CGColor(red: 0.36, green: 0.55, blue: 1.0, alpha: 1)
 let brandBottom = CGColor(red: 0.22, green: 0.20, blue: 0.68, alpha: 1)
 let iconCenterY: CGFloat = 400 - 210
-let appIconX: CGFloat = 170
-let applicationsX: CGFloat = 490
-let guideLines = [
-    "Double-click EleDocks to install",
-    "EleDocks를 더블클릭하면 설치됩니다",
-    "EleDocks をダブルクリックしてインストール",
-]
-let guideTopY: CGFloat = 70
-let guideSpacing: CGFloat = 19
+let appIconX: CGFloat = 330
+/// 아이콘 오른쪽 아래, 아이콘에 가리지 않는 더블클릭 커서 위치(왼쪽 아래 모서리).
+let cursorOrigin = CGPoint(x: appIconX + 66, y: iconCenterY - 66)
+let cursorSize: CGFloat = 28
+/// 언어와 무관한 안내: 코드 한 줄과 주석.
+let codeBaseline: CGFloat = 400 - 344
+let commentBaseline: CGFloat = 400 - 368
 
 func line(_ text: String, _ attributes: [NSAttributedString.Key: Any]) -> CTLine {
     CTLineCreateWithAttributedString(NSAttributedString(string: text, attributes: attributes))
@@ -82,44 +80,36 @@ func draw(_ ctx: CGContext) {
     ctx.textPosition = CGPoint(x: (canvas.width - width(tagline) + 3.5) / 2, y: 400 - 102)
     CTLineDraw(tagline, ctx)
 
-    // 앱에서 Applications 로 향하는 점선 곡선 화살표
-    let start = CGPoint(x: appIconX + 92, y: iconCenterY)
-    let end = CGPoint(x: applicationsX - 96, y: iconCenterY)
-    let arrow = CGMutablePath()
-    arrow.move(to: start)
-    arrow.addQuadCurve(to: end, control: CGPoint(x: canvas.width / 2, y: iconCenterY + 34))
-    ctx.saveGState()
-    ctx.addPath(arrow)
-    ctx.setLineWidth(3)
-    ctx.setLineCap(.round)
-    ctx.setLineDash(phase: 0, lengths: [0.1, 9])
-    ctx.replacePathWithStrokedPath()
-    ctx.clip()
-    ctx.drawLinearGradient(
-        markGradient, start: CGPoint(x: start.x - 4, y: 0), end: CGPoint(x: end.x, y: 0), options: [])
-    ctx.restoreGState()
+    // 아이콘 옆 더블클릭 커서
+    NSGraphicsContext.saveGraphicsState()
+    NSGraphicsContext.current = NSGraphicsContext(cgContext: ctx, flipped: false)
+    let symbol = NSImage.SymbolConfiguration(pointSize: cursorSize, weight: .regular)
+        .applying(NSImage.SymbolConfiguration(paletteColors: [NSColor(cgColor: brandBottom)!]))
+    NSImage(systemSymbolName: "cursorarrow.click.2", accessibilityDescription: nil)?
+        .withSymbolConfiguration(symbol)?
+        .draw(at: cursorOrigin, from: .zero, operation: .sourceOver, fraction: 1)
+    NSGraphicsContext.restoreGraphicsState()
 
-    // 아이콘 아래: 더블클릭하면 앱이 스스로 옮기고 설치 디스크 정리를 묻는다는 안내(en·ko·ja)
-    let guideAttributes: [NSAttributedString.Key: Any] = [
-        .font: NSFont.systemFont(ofSize: 12, weight: .regular),
-        .foregroundColor: NSColor(white: 0.45, alpha: 1),
-    ]
-    for (index, text) in guideLines.enumerated() {
-        let guide = line(text, guideAttributes)
-        ctx.textPosition = CGPoint(x: (canvas.width - width(guide)) / 2, y: guideTopY - CGFloat(index) * guideSpacing)
-        CTLineDraw(guide, ctx)
+    // 아이콘 아래: EleDocks.doubleClick() 와 // that's it.
+    let mono = NSFont.monospacedSystemFont(ofSize: 15, weight: .medium)
+    let code = NSMutableAttributedString()
+    for (text, color) in [
+        ("EleDocks", NSColor(white: 0.2, alpha: 1)), (".doubleClick", NSColor(cgColor: brandBottom)!),
+        ("()", NSColor(white: 0.2, alpha: 1)),
+    ] {
+        code.append(NSAttributedString(string: text, attributes: [.font: mono, .foregroundColor: color]))
     }
-
-    let head = CGMutablePath()
-    head.move(to: CGPoint(x: end.x - 11, y: end.y + 11))
-    head.addLine(to: end)
-    head.addLine(to: CGPoint(x: end.x - 14, y: end.y - 6))
-    ctx.addPath(head)
-    ctx.setStrokeColor(brandBottom)
-    ctx.setLineWidth(3)
-    ctx.setLineCap(.round)
-    ctx.setLineJoin(.round)
-    ctx.strokePath()
+    let codeLine = CTLineCreateWithAttributedString(code)
+    ctx.textPosition = CGPoint(x: (canvas.width - width(codeLine)) / 2, y: codeBaseline)
+    CTLineDraw(codeLine, ctx)
+    let comment = line(
+        "// that’s it.",
+        [
+            .font: NSFont.monospacedSystemFont(ofSize: 12, weight: .regular),
+            .foregroundColor: NSColor(white: 0.55, alpha: 1),
+        ])
+    ctx.textPosition = CGPoint(x: (canvas.width - width(comment)) / 2, y: commentBaseline)
+    CTLineDraw(comment, ctx)
 }
 
 func png(scale: CGFloat) -> Data {

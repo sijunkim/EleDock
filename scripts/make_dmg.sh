@@ -1,5 +1,5 @@
 #!/bin/bash
-# 앱을 Applications 로 끌어 옮기는 배포용 DMG 생성
+# 앱을 더블클릭해 설치하는 배포용 DMG 생성 (앱이 스스로 응용 프로그램 폴더로 옮기고 디스크 정리를 묻는다)
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 APP=${1:?app 경로가 필요하다}
@@ -22,7 +22,6 @@ fi
 
 mkdir "$WORK/stage"
 ditto "$APP" "$WORK/stage/EleDocks.app"
-ln -s /Applications "$WORK/stage/Applications"
 # 마운트된 볼륨(창 제목·경로 막대·데스크탑·사이드바)의 아이콘
 cp "$APP/Contents/Resources/AppIcon.icns" "$WORK/stage/.VolumeIcon.icns"
 hdiutil create -quiet -volname EleDocks -fs HFS+ -format UDRW -srcfolder "$WORK/stage" "$WORK/rw.dmg"
