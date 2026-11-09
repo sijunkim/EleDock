@@ -7,6 +7,13 @@ let brandBottom = CGColor(red: 0.22, green: 0.20, blue: 0.68, alpha: 1)
 let iconCenterY: CGFloat = 400 - 210
 let appIconX: CGFloat = 170
 let applicationsX: CGFloat = 490
+let guideLines = [
+    "Double-click EleDocks to install",
+    "EleDocks를 더블클릭하면 설치됩니다",
+    "EleDocks をダブルクリックしてインストール",
+]
+let guideTopY: CGFloat = 70
+let guideSpacing: CGFloat = 19
 
 func line(_ text: String, _ attributes: [NSAttributedString.Key: Any]) -> CTLine {
     CTLineCreateWithAttributedString(NSAttributedString(string: text, attributes: attributes))
@@ -91,6 +98,17 @@ func draw(_ ctx: CGContext) {
     ctx.drawLinearGradient(
         markGradient, start: CGPoint(x: start.x - 4, y: 0), end: CGPoint(x: end.x, y: 0), options: [])
     ctx.restoreGState()
+
+    // 아이콘 아래: 더블클릭하면 앱이 스스로 옮기고 설치 디스크 정리를 묻는다는 안내(en·ko·ja)
+    let guideAttributes: [NSAttributedString.Key: Any] = [
+        .font: NSFont.systemFont(ofSize: 12, weight: .regular),
+        .foregroundColor: NSColor(white: 0.45, alpha: 1),
+    ]
+    for (index, text) in guideLines.enumerated() {
+        let guide = line(text, guideAttributes)
+        ctx.textPosition = CGPoint(x: (canvas.width - width(guide)) / 2, y: guideTopY - CGFloat(index) * guideSpacing)
+        CTLineDraw(guide, ctx)
+    }
 
     let head = CGMutablePath()
     head.move(to: CGPoint(x: end.x - 11, y: end.y + 11))
