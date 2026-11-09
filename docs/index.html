@@ -1,0 +1,559 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EleDocks</title>
+<meta name="description" content="A menu bar app for Mac. ⌘M sends windows to the Dock one at a time, and ⇧⌘M brings them back, most recent first.">
+<meta property="og:title" content="EleDocks">
+<meta property="og:description" content="Windows, elegantly into the Dock.">
+<meta property="og:image" content="https://sijunkim.github.io/EleDocks/icon.png">
+<meta property="og:url" content="https://sijunkim.github.io/EleDocks/">
+<meta name="twitter:card" content="summary">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="icon.png">
+<style>
+:root {
+  --bg: #fbfbfd;
+  --surface: #ffffff;
+  --text: #1d1d1f;
+  --muted: #6e6e73;
+  --line: rgba(0, 0, 0, 0.08);
+  --accent: #3f52c8;
+  --accent-text: #ffffff;
+  --grad-top: #5c8cff;
+  --grad-bottom: #3833ad;
+  --stage-top: #dfe6ff;
+  --stage-bottom: #c4cdf5;
+  --window: #ffffff;
+  --window-bar: #f1f2f6;
+  --window-ink: #e3e5ec;
+  --dock: rgba(255, 255, 255, 0.55);
+  --key: #ffffff;
+  --key-edge: rgba(0, 0, 0, 0.14);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(20, 30, 80, 0.08);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0c0c10;
+    --surface: #16161c;
+    --text: #f5f5f7;
+    --muted: #a1a1a8;
+    --line: rgba(255, 255, 255, 0.1);
+    --accent: #7d8cff;
+    --accent-text: #0c0c10;
+    --stage-top: #23284a;
+    --stage-bottom: #161a33;
+    --window: #26262e;
+    --window-bar: #2f2f38;
+    --window-ink: #3a3a45;
+    --dock: rgba(255, 255, 255, 0.12);
+    --key: #24242c;
+    --key-edge: rgba(255, 255, 255, 0.14);
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.35);
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0c0c10;
+  --surface: #16161c;
+  --text: #f5f5f7;
+  --muted: #a1a1a8;
+  --line: rgba(255, 255, 255, 0.1);
+  --accent: #7d8cff;
+  --accent-text: #0c0c10;
+  --stage-top: #23284a;
+  --stage-bottom: #161a33;
+  --window: #26262e;
+  --window-bar: #2f2f38;
+  --window-ink: #3a3a45;
+  --dock: rgba(255, 255, 255, 0.12);
+  --key: #24242c;
+  --key-edge: rgba(255, 255, 255, 0.14);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 17px/1.6 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Apple SD Gothic Neo", "Hiragino Sans", "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; }
+:lang(ko) body, html:lang(ko) { word-break: keep-all; }
+.wrap { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+
+/* 머리글 */
+header.top {
+  position: sticky; top: 0; z-index: 10;
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+  backdrop-filter: saturate(180%) blur(16px);
+  -webkit-backdrop-filter: saturate(180%) blur(16px);
+  border-bottom: 1px solid var(--line);
+}
+header.top .wrap { display: flex; align-items: center; gap: 16px; height: 52px; }
+.brand { display: flex; align-items: center; gap: 8px; text-decoration: none; font-weight: 600; letter-spacing: -0.01em; }
+.brand img { width: 24px; height: 24px; }
+nav.links { margin-left: auto; display: flex; align-items: center; gap: 20px; font-size: 14px; }
+nav.links a { color: var(--muted); text-decoration: none; }
+nav.links a:hover { color: var(--text); }
+.lang { display: flex; gap: 2px; padding: 2px; border: 1px solid var(--line); border-radius: 8px; }
+.lang button {
+  border: 0; background: none; color: var(--muted); font: inherit; font-size: 13px;
+  padding: 2px 8px; border-radius: 6px; cursor: pointer;
+}
+.lang button[aria-pressed="true"] { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
+
+/* 첫 화면 */
+.hero { text-align: center; padding: 88px 0 56px; }
+.hero .icon { width: 132px; height: 132px; filter: drop-shadow(0 12px 28px rgba(56, 51, 173, 0.28)); }
+.wordmark { margin: 20px 0 0; font-size: clamp(44px, 8vw, 68px); line-height: 1.05; font-weight: 700; letter-spacing: -0.035em; }
+.wordmark .ele { font-weight: 300; }
+.wordmark .docks {
+  background: linear-gradient(180deg, var(--grad-top), var(--grad-bottom));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.meaning { margin: 8px 0 0; font-size: 12px; letter-spacing: 0.32em; color: var(--muted); }
+.tagline { margin: 28px 0 0; font-size: clamp(22px, 3.4vw, 28px); font-weight: 500; letter-spacing: -0.015em; }
+.lead { max-width: 560px; margin: 14px auto 0; color: var(--muted); }
+.cta { margin-top: 36px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.button {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 13px 26px; border-radius: 999px;
+  background: var(--accent); color: var(--accent-text);
+  font-weight: 600; text-decoration: none;
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+.button:hover { filter: brightness(1.08); }
+.button:active { transform: scale(0.98); }
+.button svg { width: 18px; height: 18px; }
+.fine { font-size: 13px; color: var(--muted); }
+.fine a { color: var(--muted); }
+
+/* 시연 */
+section { padding: 72px 0; border-top: 1px solid var(--line); }
+section h2 { margin: 0; text-align: center; font-size: clamp(28px, 4.4vw, 38px); line-height: 1.2; font-weight: 700; letter-spacing: -0.025em; }
+section .sub { margin: 10px auto 0; max-width: 560px; text-align: center; color: var(--muted); }
+
+.stage {
+  position: relative; margin: 40px auto 0; max-width: 760px; aspect-ratio: 16 / 10;
+  border-radius: 16px; overflow: hidden;
+  background: linear-gradient(160deg, var(--stage-top), var(--stage-bottom));
+  box-shadow: var(--shadow);
+  user-select: none; -webkit-user-select: none;
+}
+.win {
+  position: absolute; width: 46%; height: 52%;
+  border-radius: 10px; background: var(--window);
+  box-shadow: 0 10px 30px rgba(20, 24, 60, 0.18), 0 0 0 0.5px rgba(0, 0, 0, 0.12);
+  transform-origin: 0 0;
+  transition: transform 0.42s cubic-bezier(0.3, 0.7, 0.2, 1), opacity 0.42s ease;
+  overflow: hidden;
+}
+.win .bar { height: 14%; display: flex; align-items: center; gap: 5px; padding: 0 8px; background: var(--window-bar); }
+.win .bar i { width: 8px; height: 8px; border-radius: 50%; background: var(--window-ink); }
+.win.front .bar i:nth-child(1) { background: #ff5f57; }
+.win.front .bar i:nth-child(2) { background: #febc2e; }
+.win.front .bar i:nth-child(3) { background: #28c840; }
+.win .body { padding: 8% 7%; display: grid; gap: 7%; }
+.win .body b { display: block; height: 7px; border-radius: 4px; background: var(--window-ink); }
+.win .body b:first-child { width: 42%; background: var(--tint); opacity: 0.85; }
+.win .body b:nth-child(3) { width: 78%; }
+.win .body b:nth-child(4) { width: 64%; }
+.win.gone { opacity: 0; pointer-events: none; }
+.w1 { left: 6%; top: 8%; --tint: #ff8a65; }
+.w2 { left: 27%; top: 15%; --tint: #4db6ac; }
+.w3 { left: 48%; top: 22%; --tint: #7d8cff; }
+
+.dock {
+  position: absolute; left: 50%; bottom: 3.5%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 6px; padding: 6px 8px; height: 13%;
+  border-radius: 14px; background: var(--dock);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 0 0 0.5px rgba(255, 255, 255, 0.4) inset;
+}
+.dock .app { height: 100%; aspect-ratio: 1; border-radius: 22%; }
+.dock .app:nth-child(1) { background: linear-gradient(180deg, #ffb199, #ff7a59); }
+.dock .app:nth-child(2) { background: linear-gradient(180deg, #8de0d6, #3aa597); }
+.dock .app:nth-child(3) { background: linear-gradient(180deg, var(--grad-top), var(--grad-bottom)); }
+.dock .sep { width: 1px; height: 80%; background: rgba(0, 0, 0, 0.15); margin: 0 2px; }
+.dock .slots { display: flex; gap: 6px; height: 100%; }
+.dock .slot {
+  height: 100%; width: 0; border-radius: 4px; background: var(--window);
+  box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.15); overflow: hidden;
+  transition: width 0.3s ease;
+}
+.dock .slot.on { width: calc(var(--h) * 1.3); }
+.dock .slot::before { content: ""; display: block; height: 18%; background: var(--window-bar); }
+.dock .slot::after { content: ""; display: block; margin: 14% 14% 0; height: 12%; border-radius: 2px; background: var(--tint); }
+
+.keys { margin-top: 28px; display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; }
+.key {
+  display: inline-flex; flex-direction: column; align-items: center; gap: 2px;
+  min-width: 128px; padding: 12px 20px 10px; border-radius: 12px;
+  background: var(--key); color: var(--text);
+  border: 1px solid var(--key-edge); border-bottom-width: 3px;
+  font: inherit; cursor: pointer; touch-action: manipulation;
+  transition: transform 0.08s ease, border-bottom-width 0.08s ease;
+}
+.key kbd { font: 600 22px/1.2 -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; letter-spacing: 0.04em; }
+.key span { font-size: 12px; color: var(--muted); }
+.key.down, .key:active { transform: translateY(2px); border-bottom-width: 1px; }
+.key:focus-visible, .lang button:focus-visible, .button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.hint { margin-top: 14px; text-align: center; font-size: 13px; color: var(--muted); }
+
+/* 기능 */
+.grid { margin-top: 44px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+.cell { background: var(--bg); padding: 28px 26px; }
+.cell h3 { margin: 0; font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
+.cell p { margin: 8px 0 0; font-size: 15px; color: var(--muted); }
+
+/* 설치 */
+ol.steps { list-style: none; margin: 44px auto 0; padding: 0; max-width: 640px; counter-reset: step; }
+ol.steps li { counter-increment: step; position: relative; padding: 0 0 28px 52px; }
+ol.steps li::before {
+  content: counter(step); position: absolute; left: 0; top: 0;
+  width: 32px; height: 32px; border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 15px; font-weight: 600; color: var(--accent);
+  border: 1px solid var(--line); background: var(--surface);
+}
+ol.steps h3 { margin: 3px 0 0; font-size: 17px; font-weight: 600; }
+ol.steps p { margin: 4px 0 0; color: var(--muted); font-size: 15px; }
+.note { max-width: 640px; margin: 4px auto 0; padding-left: 52px; font-size: 14px; color: var(--muted); }
+
+footer { border-top: 1px solid var(--line); padding: 36px 0 48px; font-size: 13px; color: var(--muted); }
+footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 20px; justify-content: space-between; }
+footer a { color: var(--muted); }
+
+@media (max-width: 760px) {
+  .grid { grid-template-columns: 1fr; }
+  nav.links a.hide-sm { display: none; }
+  .hero { padding-top: 56px; }
+  section { padding: 56px 0; }
+}
+@media (max-width: 420px) {
+  .wrap { padding: 0 16px; }
+  .key { min-width: 0; flex: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .win, .dock .slot, .button, .key { transition: none; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="./"><img src="favicon.png" alt="" width="24" height="24">EleDocks</a>
+    <nav class="links">
+      <a class="hide-sm" href="#features" data-i18n="nav.features">Features</a>
+      <a class="hide-sm" href="#install" data-i18n="nav.install">Install</a>
+      <a href="https://github.com/sijunkim/EleDocks">GitHub</a>
+      <div class="lang" role="group" aria-label="Language">
+        <button type="button" data-lang="en">EN</button>
+        <button type="button" data-lang="ko">한국어</button>
+        <button type="button" data-lang="ja">日本語</button>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="hero wrap">
+    <img class="icon" src="icon.png" alt="EleDocks" width="132" height="132">
+    <h1 class="wordmark"><span class="ele">Ele</span><span class="docks">Docks</span></h1>
+    <p class="meaning">ELEGANCE + DOCK</p>
+    <p class="tagline" data-i18n="hero.tagline">Windows, elegantly into the Dock.</p>
+    <p class="lead" data-i18n="hero.lead">A small menu bar app for Mac. ⌘M sends windows to the Dock one at a time, and ⇧⌘M brings them back, most recent first.</p>
+    <div class="cta">
+      <a class="button" href="https://github.com/sijunkim/EleDocks/releases/latest/download/EleDocks.dmg">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>
+        <span data-i18n="hero.download">Download for Mac</span>
+      </a>
+      <div class="fine"><span id="version"></span><span data-i18n="hero.meta">Free · macOS 13 or later · Apple Silicon and Intel</span></div>
+    </div>
+  </div>
+
+  <section id="demo">
+    <div class="wrap">
+      <h2 data-i18n="demo.title">Two keys</h2>
+      <p class="sub" data-i18n="demo.sub">Windows leave from the front, one by one, across every app. They come back in the order they left.</p>
+      <div class="stage" id="stage" aria-hidden="true">
+        <div class="win w1"><div class="bar"><i></i><i></i><i></i></div><div class="body"><b></b><b></b><b></b><b></b></div></div>
+        <div class="win w2"><div class="bar"><i></i><i></i><i></i></div><div class="body"><b></b><b></b><b></b><b></b></div></div>
+        <div class="win w3"><div class="bar"><i></i><i></i><i></i></div><div class="body"><b></b><b></b><b></b><b></b></div></div>
+        <div class="dock"><div class="app"></div><div class="app"></div><div class="app"></div><div class="sep"></div><div class="slots"></div></div>
+      </div>
+      <div class="keys">
+        <button type="button" class="key" id="key-min"><kbd>⌘M</kbd><span data-i18n="demo.minimize">Minimize</span></button>
+        <button type="button" class="key" id="key-res"><kbd>⇧⌘M</kbd><span data-i18n="demo.restore">Restore</span></button>
+      </div>
+      <p class="hint" data-i18n="demo.hint">Click, or press and hold.</p>
+    </div>
+  </section>
+
+  <section id="features">
+    <div class="wrap">
+      <h2 data-i18n="features.title">Small by design</h2>
+      <p class="sub" data-i18n="features.sub">It does one thing, and stays out of the way.</p>
+      <div class="grid">
+        <div class="cell"><h3 data-i18n="f1.t">One at a time</h3><p data-i18n="f1.d">Each press minimizes the front window, then the one behind it, across every app.</p></div>
+        <div class="cell"><h3 data-i18n="f2.t">Back in order</h3><p data-i18n="f2.d">The most recently minimized window returns first. No searching the Dock.</p></div>
+        <div class="cell"><h3 data-i18n="f3.t">Hold to repeat</h3><p data-i18n="f3.d">Keep holding a shortcut to minimize or restore one window every 0.25 seconds.</p></div>
+        <div class="cell"><h3 data-i18n="f4.t">Your own keys</h3><p data-i18n="f4.d">Change either shortcut. EleDocks shows which running apps use the same keys.</p></div>
+        <div class="cell"><h3 data-i18n="f5.t">Excluded apps</h3><p data-i18n="f5.d">When an excluded app is in front, its own shortcuts work as usual and its windows are left alone.</p></div>
+        <div class="cell"><h3 data-i18n="f6.t">In the menu bar</h3><p data-i18n="f6.d">See minimized windows and restore them all at once. Opens at login and updates itself.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="install">
+    <div class="wrap">
+      <h2 data-i18n="install.title">Getting started</h2>
+      <ol class="steps">
+        <li><h3 data-i18n="s1.t">Download</h3><p data-i18n="s1.d">Open EleDocks.dmg and drag EleDocks into the Applications folder.</p></li>
+        <li><h3 data-i18n="s2.t">Open</h3><p data-i18n="s2.d">EleDocks appears in the menu bar. It is signed and notarized by Apple.</p></li>
+        <li><h3 data-i18n="s3.t">Allow Accessibility</h3><p data-i18n="s3.d">Turn on EleDocks in System Settings › Privacy &amp; Security › Accessibility. This lets it minimize and restore windows of other apps.</p></li>
+      </ol>
+      <p class="note" data-i18n="install.note">English, Korean, and Japanese are built in.</p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 EleDocks</span>
+    <span><a href="https://github.com/sijunkim/EleDocks" data-i18n="footer.source">Source on GitHub</a> · <a href="https://github.com/sijunkim/EleDocks/blob/main/LICENSE">MIT License</a> · <a href="https://github.com/sijunkim/EleDocks/releases" data-i18n="footer.releases">Release notes</a></span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var T = {
+    en: {
+      "nav.features": "Features", "nav.install": "Install",
+      "hero.tagline": "Windows, elegantly into the Dock.",
+      "hero.lead": "A small menu bar app for Mac. ⌘M sends windows to the Dock one at a time, and ⇧⌘M brings them back, most recent first.",
+      "hero.download": "Download for Mac",
+      "hero.meta": "Free · macOS 13 or later · Apple Silicon and Intel",
+      "hero.version": "Version {v} · ",
+      "demo.title": "Two keys",
+      "demo.sub": "Windows leave from the front, one by one, across every app. They come back in the order they left.",
+      "demo.minimize": "Minimize", "demo.restore": "Restore",
+      "demo.hint": "Click, or press and hold.",
+      "features.title": "Small by design",
+      "features.sub": "It does one thing, and stays out of the way.",
+      "f1.t": "One at a time", "f1.d": "Each press minimizes the front window, then the one behind it, across every app.",
+      "f2.t": "Back in order", "f2.d": "The most recently minimized window returns first. No searching the Dock.",
+      "f3.t": "Hold to repeat", "f3.d": "Keep holding a shortcut to minimize or restore one window every 0.25 seconds.",
+      "f4.t": "Your own keys", "f4.d": "Change either shortcut. EleDocks shows which running apps use the same keys.",
+      "f5.t": "Excluded apps", "f5.d": "When an excluded app is in front, its own shortcuts work as usual and its windows are left alone.",
+      "f6.t": "In the menu bar", "f6.d": "See minimized windows and restore them all at once. Opens at login and updates itself.",
+      "install.title": "Getting started",
+      "s1.t": "Download", "s1.d": "Open EleDocks.dmg and drag EleDocks into the Applications folder.",
+      "s2.t": "Open", "s2.d": "EleDocks appears in the menu bar. It is signed and notarized by Apple.",
+      "s3.t": "Allow Accessibility", "s3.d": "Turn on EleDocks in System Settings › Privacy & Security › Accessibility. This lets it minimize and restore windows of other apps.",
+      "install.note": "English, Korean, and Japanese are built in.",
+      "footer.source": "Source on GitHub", "footer.releases": "Release notes",
+      "meta.description": "A menu bar app for Mac. ⌘M sends windows to the Dock one at a time, and ⇧⌘M brings them back, most recent first."
+    },
+    ko: {
+      "nav.features": "기능", "nav.install": "설치",
+      "hero.tagline": "창을 우아하게, Dock으로.",
+      "hero.lead": "Mac 메뉴 막대에 머무는 작은 앱입니다. ⌘M으로 창을 하나씩 Dock에 넣고, ⇧⌘M으로 가장 최근 창부터 되돌립니다.",
+      "hero.download": "Mac용 다운로드",
+      "hero.meta": "무료 · macOS 13 이상 · Apple 실리콘과 Intel",
+      "hero.version": "버전 {v} · ",
+      "demo.title": "두 개의 키",
+      "demo.sub": "앱을 가리지 않고 맨 앞 창부터 하나씩 내려가고, 내려간 순서를 거슬러 돌아옵니다.",
+      "demo.minimize": "최소화", "demo.restore": "복원",
+      "demo.hint": "눌러 보거나, 길게 눌러 보세요.",
+      "features.title": "작게, 한 가지만",
+      "features.sub": "한 가지 일을 하고, 그 밖에는 조용히 비켜 있습니다.",
+      "f1.t": "하나씩", "f1.d": "누를 때마다 맨 앞 창부터 그 뒤의 창까지, 앱을 가리지 않고 하나씩 최소화합니다.",
+      "f2.t": "순서대로 복원", "f2.d": "가장 최근에 최소화한 창이 먼저 돌아옵니다. Dock을 뒤질 필요가 없습니다.",
+      "f3.t": "길게 눌러 연속 동작", "f3.d": "단축키를 누르고 있으면 0.25초마다 창을 하나씩 최소화하거나 복원합니다.",
+      "f4.t": "원하는 단축키로", "f4.d": "두 단축키 모두 바꿀 수 있고, 같은 키를 쓰는 실행 중인 앱도 알려 줍니다.",
+      "f5.t": "제외 앱", "f5.d": "제외한 앱이 맨 앞에 있으면 그 앱의 단축키가 그대로 동작하고, 그 앱의 창은 건드리지 않습니다.",
+      "f6.t": "메뉴 막대에서", "f6.d": "최소화된 창을 확인하고 한 번에 모두 복원합니다. 로그인 시 열리고 스스로 업데이트합니다.",
+      "install.title": "시작하기",
+      "s1.t": "다운로드", "s1.d": "EleDocks.dmg를 열고 EleDocks를 응용 프로그램 폴더로 끌어 놓습니다.",
+      "s2.t": "실행", "s2.d": "메뉴 막대에 EleDocks가 나타납니다. Apple의 서명과 공증을 거친 앱입니다.",
+      "s3.t": "손쉬운 사용 허용", "s3.d": "시스템 설정 › 개인정보 보호 및 보안 › 손쉬운 사용에서 EleDocks를 켭니다. 다른 앱의 창을 최소화하고 복원하는 데 필요합니다.",
+      "install.note": "한국어, 영어, 일본어를 지원합니다.",
+      "footer.source": "GitHub 소스", "footer.releases": "릴리스 노트",
+      "meta.description": "Mac 메뉴 막대 앱. ⌘M으로 창을 하나씩 Dock에 넣고, ⇧⌘M으로 가장 최근 창부터 되돌립니다."
+    },
+    ja: {
+      "nav.features": "機能", "nav.install": "インストール",
+      "hero.tagline": "ウインドウを、エレガントに Dock へ。",
+      "hero.lead": "Mac のメニューバーに置く小さなアプリです。⌘M でウインドウを1つずつ Dock にしまい、⇧⌘M で最後にしまったものから戻します。",
+      "hero.download": "Mac 版をダウンロード",
+      "hero.meta": "無料 · macOS 13 以降 · Apple シリコンと Intel",
+      "hero.version": "バージョン {v} · ",
+      "demo.title": "2つのキー",
+      "demo.sub": "アプリを問わず、前面のウインドウから1つずつしまい、しまった順をさかのぼって戻します。",
+      "demo.minimize": "しまう", "demo.restore": "復元",
+      "demo.hint": "クリック、または長押ししてみてください。",
+      "features.title": "小さく、ひとつだけ",
+      "features.sub": "ひとつのことだけをして、あとは静かに控えています。",
+      "f1.t": "1つずつ", "f1.d": "押すたびに、前面のウインドウからその後ろへ、アプリを問わず1つずつしまいます。",
+      "f2.t": "順番どおりに復元", "f2.d": "最後にしまったウインドウから戻ります。Dock を探す必要はありません。",
+      "f3.t": "長押しで連続", "f3.d": "ショートカットを押し続けると、0.25秒ごとにウインドウを1つずつしまうか復元します。",
+      "f4.t": "好きなキーで", "f4.d": "どちらのショートカットも変更でき、同じキーを使っている実行中のアプリも表示します。",
+      "f5.t": "除外アプリ", "f5.d": "除外したアプリが最前面にあるときは、そのアプリのショートカットがそのまま使え、そのウインドウには触れません。",
+      "f6.t": "メニューバーから", "f6.d": "しまったウインドウを確認し、まとめて復元できます。ログイン時に開き、自動でアップデートします。",
+      "install.title": "はじめかた",
+      "s1.t": "ダウンロード", "s1.d": "EleDocks.dmg を開き、EleDocks を“アプリケーション”フォルダにドラッグします。",
+      "s2.t": "開く", "s2.d": "メニューバーに EleDocks が表示されます。Apple による署名と公証を受けています。",
+      "s3.t": "アクセシビリティを許可", "s3.d": "システム設定 › プライバシーとセキュリティ › アクセシビリティ で EleDocks をオンにします。ほかのアプリのウインドウをしまったり戻したりするために必要です。",
+      "install.note": "日本語、英語、韓国語に対応しています。",
+      "footer.source": "GitHub のソース", "footer.releases": "リリースノート",
+      "meta.description": "Mac のメニューバーアプリ。⌘M でウインドウを1つずつ Dock にしまい、⇧⌘M で最後にしまったものから戻します。"
+    }
+  };
+
+  var version = null;
+
+  function pickLang() {
+    var q = new URLSearchParams(location.search).get("lang");
+    if (q && T[q]) return q;
+    try { var s = localStorage.getItem("lang"); if (s && T[s]) return s; } catch (e) {}
+    var list = navigator.languages || [navigator.language || "en"];
+    for (var i = 0; i < list.length; i++) {
+      var code = String(list[i]).slice(0, 2).toLowerCase();
+      if (T[code]) return code;
+    }
+    return "en";
+  }
+
+  function apply(lang) {
+    var t = T[lang];
+    document.documentElement.lang = lang;
+    document.querySelectorAll("[data-i18n]").forEach(function (el) {
+      var k = el.getAttribute("data-i18n");
+      if (t[k]) el.textContent = t[k];
+    });
+    document.querySelector('meta[name="description"]').setAttribute("content", t["meta.description"]);
+    document.querySelectorAll(".lang button").forEach(function (b) {
+      b.setAttribute("aria-pressed", String(b.getAttribute("data-lang") === lang));
+    });
+    document.getElementById("version").textContent = version ? t["hero.version"].replace("{v}", version) : "";
+    current = lang;
+  }
+
+  var current = pickLang();
+  apply(current);
+  document.querySelectorAll(".lang button").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var lang = b.getAttribute("data-lang");
+      try { localStorage.setItem("lang", lang); } catch (e) {}
+      apply(lang);
+    });
+  });
+
+  fetch("https://api.github.com/repos/sijunkim/EleDocks/releases/latest")
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (d) {
+      if (d && d.tag_name) { version = d.tag_name.replace(/^v/, ""); apply(current); }
+    })
+    .catch(function () {});
+
+  /* 시연: 창을 하나씩 Dock 으로 보내고, 보낸 순서를 거슬러 되돌린다. */
+  var stage = document.getElementById("stage");
+  var slots = stage.querySelector(".slots");
+  var visible = Array.prototype.slice.call(stage.querySelectorAll(".win")); // 뒤 → 앞
+  var stack = []; // 최소화한 순서
+  var z = 10;
+
+  function syncFront() {
+    visible.forEach(function (w, i) {
+      w.classList.toggle("front", i === visible.length - 1);
+      w.style.zIndex = w.style.zIndex || String(++z);
+    });
+  }
+  visible.forEach(function (w) { w.style.zIndex = String(++z); });
+  syncFront();
+
+  function minimize() {
+    var w = visible.pop();
+    if (!w) return;
+    var slot = document.createElement("div");
+    slot.className = "slot";
+    slot.style.setProperty("--tint", getComputedStyle(w).getPropertyValue("--tint"));
+    slot.style.setProperty("--h", slots.getBoundingClientRect().height + "px");
+    slots.appendChild(slot);
+    slot.getBoundingClientRect();
+    slot.classList.add("on");
+    var to = slot.getBoundingClientRect();
+    var from = w.getBoundingClientRect();
+    var scale = Math.min(to.height / from.height, (to.height * 1.3) / from.width);
+    w.style.transform =
+      "translate(" + (to.left - from.left) + "px," + (to.top - from.top) + "px) scale(" + scale + ")";
+    w.classList.add("gone");
+    stack.push({ win: w, slot: slot });
+    syncFront();
+  }
+
+  function restore() {
+    var item = stack.pop();
+    if (!item) return;
+    item.slot.classList.remove("on");
+    setTimeout(function () { item.slot.remove(); }, 300);
+    item.win.style.zIndex = String(++z);
+    item.win.style.transform = "";
+    item.win.classList.remove("gone");
+    visible.push(item.win);
+    syncFront();
+  }
+
+  /* 길게 누르면 0.25초마다 반복한다. */
+  function holdable(button, action) {
+    var timer = null;
+    function start(e) {
+      if (e) e.preventDefault();
+      stop();
+      action();
+      button.classList.add("down");
+      timer = setInterval(action, 250);
+    }
+    function stop() {
+      if (timer) clearInterval(timer);
+      timer = null;
+      button.classList.remove("down");
+    }
+    button.addEventListener("pointerdown", start);
+    ["pointerup", "pointerleave", "pointercancel", "blur"].forEach(function (n) { button.addEventListener(n, stop); });
+    button.addEventListener("keydown", function (e) {
+      if ((e.key === "Enter" || e.key === " ") && !e.repeat) start(e);
+    });
+    button.addEventListener("keyup", function (e) {
+      if (e.key === "Enter" || e.key === " ") stop();
+    });
+    button.addEventListener("click", function (e) { e.preventDefault(); });
+    return { start: start, stop: stop };
+  }
+
+  var minKey = holdable(document.getElementById("key-min"), minimize);
+  var resKey = holdable(document.getElementById("key-res"), restore);
+
+  /* 키보드의 M 과 ⇧M 으로도 시연한다(⌘M 은 브라우저 창이 최소화되므로 쓰지 않는다). */
+  var held = null;
+  document.addEventListener("keydown", function (e) {
+    if (e.metaKey || e.ctrlKey || e.altKey || e.repeat) return;
+    if (e.key !== "m" && e.key !== "M") return;
+    var t = e.target;
+    if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA")) return;
+    held = e.shiftKey ? resKey : minKey;
+    held.start();
+  });
+  document.addEventListener("keyup", function (e) {
+    if (held && (e.key === "m" || e.key === "M" || e.key === "Shift")) { held.stop(); held = null; }
+  });
+})();
+</script>
+</body>
+</html>

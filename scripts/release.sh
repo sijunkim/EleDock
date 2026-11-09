@@ -49,4 +49,6 @@ scripts/make_dmg.sh "$APP" "$DMG"
 codesign --timestamp -s "$SIGN_ID" "$DMG"
 xcrun notarytool submit "$DMG" --keychain-profile "${NOTARY_PROFILE:-EleDocks}" --wait
 xcrun stapler staple "$DMG"
-echo "Released $DMG, releases/EleDocks-$VERSION.zip, releases/appcast.xml"
+# 웹사이트·README 의 releases/latest/download/EleDocks.dmg 가 가리키는 버전 없는 이름
+cp "$DMG" build/EleDocks.dmg
+echo "Released $DMG, build/EleDocks.dmg, releases/EleDocks-$VERSION.zip, releases/appcast.xml"
