@@ -13,6 +13,8 @@ GRID_SPACING = 100.0
 ICON_Y = 210
 APP_X = 170
 APPLICATIONS_X = 490
+# 숨김 파일 표시 때만 보이는 볼륨 아이콘 파일의 위치(창 안 위쪽, 스크롤이 생기지 않게)
+VOLUME_ICON_POS = (APPLICATIONS_X, 70)
 BOOKMARK_SCRIPT = """
 ObjC.import("Foundation");
 function run(argv) {
@@ -72,3 +74,4 @@ with DSStore.open(f"{volume}/.DS_Store", "w+") as store:
     store["."]["pBBk"] = Bookmark(f"{volume}/EleDocks.app/Contents/Resources/dmg-background.tiff")
     store["EleDocks.app"]["Iloc"] = (APP_X, ICON_Y)
     store["Applications"]["Iloc"] = (APPLICATIONS_X, ICON_Y)
+    store[".VolumeIcon.icns"]["Iloc"] = VOLUME_ICON_POS
