@@ -24,7 +24,7 @@ EleDocks is a small menu bar app for Mac.
 - **Hold to repeat** — Keep holding a shortcut to minimize or restore one window every 0.25 seconds.
 - **Your own keys** — Change either shortcut. EleDocks shows which running apps use the same keys.
 - **Excluded apps** — When an excluded app is in front, its own shortcuts work as usual and its windows are left alone.
-- **In the menu bar** — See minimized windows and restore them all at once. Opens at login and updates itself.
+- **In the menu bar** — See minimized windows and restore them all at once. It can open at login and checks for updates on its own.
 
 ## Install
 
@@ -32,7 +32,7 @@ EleDocks is a small menu bar app for Mac.
 2. Open EleDocks. It appears in the menu bar.
 3. Turn on EleDocks in **System Settings › Privacy & Security › Accessibility**. This lets it minimize and restore windows of other apps.
 
-Requires macOS 13 Ventura or later, on Apple Silicon or Intel. EleDocks is signed and notarized by Apple, and is available in English, Korean, and Japanese.
+Requires macOS 13 Ventura or later, on Apple Silicon or Intel. EleDocks is notarized by Apple, and is available in English, Korean, and Japanese.
 
 ## Build from source
 
