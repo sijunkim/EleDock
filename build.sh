@@ -1,5 +1,5 @@
 #!/bin/bash
-# EleDocks.app(arm64 + x86_64 universal)을 build/ 에 만든다.
+# EleDock.app(arm64 + x86_64 universal)을 build/ 에 만든다.
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -16,14 +16,14 @@ fi
 swift build -c release --arch arm64 --arch x86_64
 BIN=$(swift build -c release --arch arm64 --arch x86_64 --show-bin-path)
 
-APP=build/EleDocks.app
+APP=build/EleDock.app
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Frameworks" "$APP/Contents/Resources"
 # arm64 슬라이스의 SDK 빌드 버전을 현재 SDK 로 올린다.
 SDK_VERSION=$(xcrun --show-sdk-version)
 vtool -arch arm64 -set-build-version macos 13.0 "$SDK_VERSION" -replace \
-    -output "$APP/Contents/MacOS/EleDocks" "$BIN/EleDocks"
-strip -S -x "$APP/Contents/MacOS/EleDocks"
+    -output "$APP/Contents/MacOS/EleDock" "$BIN/EleDock"
+strip -S -x "$APP/Contents/MacOS/EleDock"
 ditto "$BIN/Sparkle.framework" "$APP/Contents/Frameworks/Sparkle.framework"
 cp Resources/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
 cp Resources/dmg-background.tiff "$APP/Contents/Resources/dmg-background.tiff"
@@ -38,9 +38,9 @@ cat > "$APP/Contents/Info.plist" <<PLIST
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <key>CFBundleExecutable</key><string>EleDocks</string>
-    <key>CFBundleIdentifier</key><string>com.sijunkim.eledocks</string>
-    <key>CFBundleName</key><string>EleDocks</string>
+    <key>CFBundleExecutable</key><string>EleDock</string>
+    <key>CFBundleIdentifier</key><string>com.sijunkim.eledock</string>
+    <key>CFBundleName</key><string>EleDock</string>
     <key>CFBundleDevelopmentRegion</key><string>en</string>
     <key>CFBundleLocalizations</key><array>$LOCALIZATIONS</array>
     <key>CFBundleIconFile</key><string>AppIcon</string>
@@ -76,6 +76,6 @@ sign "$SPARKLE"
 if [ -n "$SIGN_ID" ]; then
     sign "$APP"
 else
-    sign -r='designated => identifier "com.sijunkim.eledocks"' "$APP"
+    sign -r='designated => identifier "com.sijunkim.eledock"' "$APP"
 fi
 echo "Built $APP"

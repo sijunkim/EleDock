@@ -1,15 +1,15 @@
 /* 응용 프로그램 폴더로 옮기기 */
-"move.title" = "EleDocks を“アプリケーション”フォルダに移動しますか?";
-"move.message" = "アップデートを正しく行うには、EleDocks を“アプリケーション”フォルダから実行する必要があります。";
+"move.title" = "EleDock を“アプリケーション”フォルダに移動しますか?";
+"move.message" = "アップデートを正しく行うには、EleDock を“アプリケーション”フォルダから実行する必要があります。";
 "move.confirm" = "“アプリケーション”フォルダに移動";
 "move.later" = "今はしない";
 "move.suppress" = "次回から確認しない";
-"move.failed" = "EleDocks を移動できませんでした。";
+"move.failed" = "EleDock を移動できませんでした。";
 "move.failed.info" = "Finder で“アプリケーション”フォルダに移動してください。";
 
 /* 설치 디스크 정리 */
 "cleanup.title" = "インストールディスクを取り出し、ダウンロードした DMG ファイルをゴミ箱に入れますか?";
-"cleanup.message" = "EleDocks のインストールが完了したため、DMG ファイルは不要になりました。";
+"cleanup.message" = "EleDock のインストールが完了したため、DMG ファイルは不要になりました。";
 "cleanup.ejectAndTrash" = "取り出してゴミ箱に入れる";
 "cleanup.eject" = "ディスクだけ取り出す";
 "cleanup.keep" = "そのままにする";
@@ -21,8 +21,8 @@
 "menu.permission.required" = "アクセシビリティ: 許可が必要";
 "menu.permission.open" = "アクセシビリティ設定を開く";
 "menu.settings" = "設定…";
-"menu.about" = "EleDocks について";
-"menu.quit" = "EleDocks を終了";
+"menu.about" = "EleDock について";
+"menu.quit" = "EleDock を終了";
 "login" = "ログイン時に開く";
 "login.approval" = "ログイン時に開く（承認が必要）";
 "hotkeys.enabled" = "ショートカットを使用";
@@ -31,7 +31,7 @@
 
 /* 메뉴 막대 */
 "menu.services" = "サービス";
-"menu.hide" = "EleDocks を非表示";
+"menu.hide" = "EleDock を非表示";
 "menu.hideOthers" = "ほかを非表示";
 "menu.showAll" = "すべてを表示";
 "menu.edit" = "編集";
@@ -72,9 +72,9 @@
 "shortcut.conflicts.scanning" = "実行中のアプリを確認中…";
 "shortcut.conflicts.none" = "重複するアプリはありません";
 
-"exclusions.help" = "これらのアプリが最前面にあるときは EleDocks のショートカットがオフになり、アプリ自体のショートカット（⌘M など）を使えます。ウインドウをしまうときも、これらのアプリのウインドウはスキップされます。";
+"exclusions.help" = "これらのアプリが最前面にあるときは EleDock のショートカットがオフになり、アプリ自体のショートカット（⌘M など）を使えます。ウインドウをしまうときも、これらのアプリのウインドウはスキップされます。";
 "exclusions.empty" = "除外するアプリはありません";
-"exclusions.empty.detail" = "すべてのアプリのウインドウが EleDocks で Dock に入ります。";
+"exclusions.empty.detail" = "すべてのアプリのウインドウが EleDock で Dock に入ります。";
 "exclusions.add" = "アプリを追加";
 "exclusions.remove" = "アプリを削除";
 "exclusions.choose" = "アプリを選択…";
@@ -83,6 +83,6 @@
 "about.version" = "バージョン";
 "about.website" = "Webサイト";
 "about.wordmark.ele" = "Ele";
-"about.wordmark.docks" = "Docks";
+"about.wordmark.dock" = "Dock";
 "about.wordmark.meaning" = "ELEGANCE + DOCK";
-"about.copyright" = "© 2026 EleDocks";
+"about.copyright" = "© 2026 EleDock";

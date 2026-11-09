@@ -21,16 +21,16 @@ if ! "$VENV/bin/python" -c "import ds_store" 2>/dev/null; then
 fi
 
 mkdir "$WORK/stage"
-ditto "$APP" "$WORK/stage/EleDocks.app"
+ditto "$APP" "$WORK/stage/EleDock.app"
 # 마운트된 볼륨(창 제목·경로 막대·데스크탑·사이드바)의 아이콘
 cp "$APP/Contents/Resources/AppIcon.icns" "$WORK/stage/.VolumeIcon.icns"
-hdiutil create -quiet -volname EleDocks -fs HFS+ -format UDRW -srcfolder "$WORK/stage" "$WORK/rw.dmg"
+hdiutil create -quiet -volname EleDock -fs HFS+ -format UDRW -srcfolder "$WORK/stage" "$WORK/rw.dmg"
 MOUNT=$(hdiutil attach -nobrowse -noautoopen "$WORK/rw.dmg" | awk -F'\t' '/Apple_HFS/ {print $NF}')
-if [ "$MOUNT" != /Volumes/EleDocks ]; then
-    echo "$MOUNT 에 붙었다. 이미 붙은 EleDocks 볼륨을 꺼내고 다시 실행한다" >&2
+if [ "$MOUNT" != /Volumes/EleDock ]; then
+    echo "$MOUNT 에 붙었다. 이미 붙은 EleDock 볼륨을 꺼내고 다시 실행한다" >&2
     exit 1
 fi
-SetFile -a E "$MOUNT/EleDocks.app"
+SetFile -a E "$MOUNT/EleDock.app"
 SetFile -a C "$MOUNT"
 "$VENV/bin/python" "$ROOT/scripts/make_dmg_ds_store.py" "$MOUNT"
 rm -rf "$MOUNT/.fseventsd"

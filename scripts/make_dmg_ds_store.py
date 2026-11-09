@@ -70,6 +70,6 @@ with DSStore.open(f"{volume}/.DS_Store", "w+") as store:
         "backgroundColorGreen": 1.0,
         "backgroundColorBlue": 1.0,
     }
-    store["."]["pBBk"] = Bookmark(f"{volume}/EleDocks.app/Contents/Resources/dmg-background.tiff")
-    store["EleDocks.app"]["Iloc"] = (APP_X, ICON_Y)
+    store["."]["pBBk"] = Bookmark(f"{volume}/EleDock.app/Contents/Resources/dmg-background.tiff")
+    store["EleDock.app"]["Iloc"] = (APP_X, ICON_Y)
     store[".VolumeIcon.icns"]["Iloc"] = VOLUME_ICON_POS

@@ -10,8 +10,8 @@ let appIconX: CGFloat = 330
 let cursorOrigin = CGPoint(x: appIconX + 66, y: iconCenterY - 66)
 let cursorSize: CGFloat = 28
 /// 언어와 무관한 안내: 코드 한 줄과 주석.
-let codeBaseline: CGFloat = 400 - 344
-let commentBaseline: CGFloat = 400 - 368
+let codeBaseline: CGFloat = 400 - 330
+let commentBaseline: CGFloat = 400 - 354
 
 func line(_ text: String, _ attributes: [NSAttributedString.Key: Any]) -> CTLine {
     CTLineCreateWithAttributedString(NSAttributedString(string: text, attributes: attributes))
@@ -43,19 +43,19 @@ func draw(_ ctx: CGContext) {
         glow, startCenter: CGPoint(x: canvas.width / 2, y: iconCenterY), startRadius: 0,
         endCenter: CGPoint(x: canvas.width / 2, y: iconCenterY), endRadius: 300, options: [])
 
-    // 워드마크: 그라데이션 세리프 이탤릭 "Ele" + "Docks"
+    // 워드마크: 그라데이션 세리프 이탤릭 "Ele" + "Dock"
     let eleFont = NSFont.systemFont(ofSize: 34, weight: .semibold).fontDescriptor
         .withDesign(.serif)
         .map { NSFont(descriptor: $0.withSymbolicTraits(.italic), size: 34)! }!
     let ele = line("Ele", [.font: eleFont])
-    let docks = line(
-        "Docks",
+    let dock = line(
+        "Dock",
         [
             .font: NSFont.systemFont(ofSize: 30, weight: .semibold),
             .foregroundColor: NSColor(white: 0.12, alpha: 1),
         ])
     let baseline: CGFloat = 400 - 78
-    let eleX = (canvas.width - width(ele) - width(docks)) / 2
+    let eleX = (canvas.width - width(ele) - width(dock)) / 2
     ctx.textMatrix = .identity
     ctx.saveGState()
     ctx.setTextDrawingMode(.clip)
@@ -67,7 +67,7 @@ func draw(_ ctx: CGContext) {
         end: CGPoint(x: 0, y: baseline + eleFont.descender), options: [])
     ctx.restoreGState()
     ctx.textPosition = CGPoint(x: eleX + width(ele), y: baseline)
-    CTLineDraw(docks, ctx)
+    CTLineDraw(dock, ctx)
 
     // 부제: 넓은 자간 회색 대문자
     let tagline = line(
@@ -90,11 +90,11 @@ func draw(_ ctx: CGContext) {
         .draw(at: cursorOrigin, from: .zero, operation: .sourceOver, fraction: 1)
     NSGraphicsContext.restoreGraphicsState()
 
-    // 아이콘 아래: EleDocks.doubleClick() 와 // that's it.
+    // 아이콘 아래: EleDock.doubleClick() 와 // that's it.
     let mono = NSFont.monospacedSystemFont(ofSize: 15, weight: .medium)
     let code = NSMutableAttributedString()
     for (text, color) in [
-        ("EleDocks", NSColor(white: 0.2, alpha: 1)), (".doubleClick", NSColor(cgColor: brandBottom)!),
+        ("EleDock", NSColor(white: 0.2, alpha: 1)), (".doubleClick", NSColor(cgColor: brandBottom)!),
         ("()", NSColor(white: 0.2, alpha: 1)),
     ] {
         code.append(NSAttributedString(string: text, attributes: [.font: mono, .foregroundColor: color]))

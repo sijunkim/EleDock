@@ -1,5 +1,5 @@
 /* 응용 프로그램 폴더로 옮기기 */
-"move.title" = "EleDocks를 응용 프로그램 폴더로 옮길까요?";
+"move.title" = "EleDock을 응용 프로그램 폴더로 옮길까요?";
 "move.message" = "응용 프로그램 폴더에서 실행해야 업데이트가 정상 동작합니다.";
 "move.confirm" = "응용 프로그램 폴더로 옮기기";
 "move.later" = "나중에";
@@ -9,7 +9,7 @@
 
 /* 설치 디스크 정리 */
 "cleanup.title" = "설치 디스크를 꺼내고 내려받은 DMG 파일을 휴지통으로 옮길까요?";
-"cleanup.message" = "EleDocks 설치가 끝나 DMG 파일은 더 이상 필요하지 않습니다.";
+"cleanup.message" = "EleDock 설치가 끝나 DMG 파일은 더 이상 필요하지 않습니다.";
 "cleanup.ejectAndTrash" = "꺼내고 휴지통으로 이동";
 "cleanup.eject" = "디스크만 꺼내기";
 "cleanup.keep" = "그대로 두기";
@@ -21,8 +21,8 @@
 "menu.permission.required" = "손쉬운 사용 권한: 필요함";
 "menu.permission.open" = "손쉬운 사용 설정 열기";
 "menu.settings" = "설정…";
-"menu.about" = "EleDocks에 관하여";
-"menu.quit" = "EleDocks 종료";
+"menu.about" = "EleDock에 관하여";
+"menu.quit" = "EleDock 종료";
 "login" = "로그인 시 열기";
 "login.approval" = "로그인 시 열기 (승인 필요)";
 "hotkeys.enabled" = "단축키 사용";
@@ -31,7 +31,7 @@
 
 /* 메뉴 막대 */
 "menu.services" = "서비스";
-"menu.hide" = "EleDocks 가리기";
+"menu.hide" = "EleDock 가리기";
 "menu.hideOthers" = "기타 가리기";
 "menu.showAll" = "모두 보기";
 "menu.edit" = "편집";
@@ -72,9 +72,9 @@
 "shortcut.conflicts.scanning" = "실행 중인 앱 확인 중…";
 "shortcut.conflicts.none" = "겹치는 앱 없음";
 
-"exclusions.help" = "목록의 앱이 맨 앞에 있으면 EleDocks 단축키가 꺼져 앱 자체 단축키(⌘M 등)를 쓸 수 있습니다. 최소화할 때도 이 앱들의 창은 건너뜁니다.";
+"exclusions.help" = "목록의 앱이 맨 앞에 있으면 EleDock 단축키가 꺼져 앱 자체 단축키(⌘M 등)를 쓸 수 있습니다. 최소화할 때도 이 앱들의 창은 건너뜁니다.";
 "exclusions.empty" = "제외한 앱 없음";
-"exclusions.empty.detail" = "모든 앱의 창이 EleDocks와 함께 Dock으로 들어갑니다.";
+"exclusions.empty.detail" = "모든 앱의 창이 EleDock과 함께 Dock으로 들어갑니다.";
 "exclusions.add" = "앱 추가";
 "exclusions.remove" = "앱 제거";
 "exclusions.choose" = "앱 선택…";
@@ -83,6 +83,6 @@
 "about.version" = "버전";
 "about.website" = "웹사이트";
 "about.wordmark.ele" = "Ele";
-"about.wordmark.docks" = "Docks";
+"about.wordmark.dock" = "Dock";
 "about.wordmark.meaning" = "ELEGANCE + DOCK";
-"about.copyright" = "© 2026 EleDocks";
+"about.copyright" = "© 2026 EleDock";

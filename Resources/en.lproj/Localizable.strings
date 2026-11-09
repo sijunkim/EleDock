@@ -1,15 +1,15 @@
 /* 응용 프로그램 폴더로 옮기기 */
-"move.title" = "Move EleDocks to the Applications folder?";
-"move.message" = "EleDocks must run from the Applications folder for updates to work.";
+"move.title" = "Move EleDock to the Applications folder?";
+"move.message" = "EleDock must run from the Applications folder for updates to work.";
 "move.confirm" = "Move to Applications Folder";
 "move.later" = "Not Now";
 "move.suppress" = "Don’t ask again";
-"move.failed" = "Couldn’t move EleDocks.";
+"move.failed" = "Couldn’t move EleDock.";
 "move.failed.info" = "Move it to the Applications folder in Finder.";
 
 /* 설치 디스크 정리 */
 "cleanup.title" = "Eject the installer disk and move the downloaded DMG file to the Trash?";
-"cleanup.message" = "EleDocks is installed, so the DMG file is no longer needed.";
+"cleanup.message" = "EleDock is installed, so the DMG file is no longer needed.";
 "cleanup.ejectAndTrash" = "Eject and Move to Trash";
 "cleanup.eject" = "Eject Disk Only";
 "cleanup.keep" = "Keep";
@@ -21,8 +21,8 @@
 "menu.permission.required" = "Accessibility Access: Required";
 "menu.permission.open" = "Open Accessibility Settings";
 "menu.settings" = "Settings…";
-"menu.about" = "About EleDocks";
-"menu.quit" = "Quit EleDocks";
+"menu.about" = "About EleDock";
+"menu.quit" = "Quit EleDock";
 "login" = "Open at Login";
 "login.approval" = "Open at Login (Approval Required)";
 "hotkeys.enabled" = "Enable Shortcuts";
@@ -31,7 +31,7 @@
 
 /* 메뉴 막대 */
 "menu.services" = "Services";
-"menu.hide" = "Hide EleDocks";
+"menu.hide" = "Hide EleDock";
 "menu.hideOthers" = "Hide Others";
 "menu.showAll" = "Show All";
 "menu.edit" = "Edit";
@@ -57,7 +57,7 @@
 "settings.autoUpdate" = "Automatically check for updates";
 "settings.language" = "Language";
 "settings.language.system" = "Use System Setting";
-"settings.language.restart" = "The new language takes effect after EleDocks restarts.";
+"settings.language.restart" = "The new language takes effect after EleDock restarts.";
 "settings.relaunch" = "Restart Now";
 
 "shortcut.minimize" = "Minimize";
@@ -72,9 +72,9 @@
 "shortcut.conflicts.scanning" = "Checking running apps…";
 "shortcut.conflicts.none" = "No Conflicting Apps";
 
-"exclusions.help" = "When one of these apps is in front, EleDocks shortcuts are turned off so the app’s own shortcuts (such as ⌘M) work. Its windows are also skipped when minimizing.";
+"exclusions.help" = "When one of these apps is in front, EleDock shortcuts are turned off so the app’s own shortcuts (such as ⌘M) work. Its windows are also skipped when minimizing.";
 "exclusions.empty" = "No Excluded Apps";
-"exclusions.empty.detail" = "Every app’s windows go into the Dock with EleDocks.";
+"exclusions.empty.detail" = "Every app’s windows go into the Dock with EleDock.";
 "exclusions.add" = "Add App";
 "exclusions.remove" = "Remove App";
 "exclusions.choose" = "Choose App…";
@@ -83,6 +83,6 @@
 "about.version" = "Version";
 "about.website" = "Website";
 "about.wordmark.ele" = "Ele";
-"about.wordmark.docks" = "Docks";
+"about.wordmark.dock" = "Dock";
 "about.wordmark.meaning" = "ELEGANCE + DOCK";
-"about.copyright" = "© 2026 EleDocks";
+"about.copyright" = "© 2026 EleDock";

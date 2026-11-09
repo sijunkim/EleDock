@@ -1,20 +1,20 @@
 <p align="center">
-  <img src="docs/icon.png" width="128" height="128" alt="EleDocks">
+  <img src="docs/icon.png" width="128" height="128" alt="EleDock">
 </p>
 
-<h1 align="center">EleDocks</h1>
+<h1 align="center">EleDock</h1>
 
 <p align="center"><em>창을 우아하게, Dock으로.</em></p>
 
 <p align="center">
-  <a href="https://sijunkim.github.io/EleDocks/?lang=ko"><b>웹사이트</b></a> ·
-  <a href="https://github.com/sijunkim/EleDocks/releases/latest/download/EleDocks.dmg"><b>다운로드</b></a> ·
+  <a href="https://sijunkim.github.io/EleDock/?lang=ko"><b>웹사이트</b></a> ·
+  <a href="https://github.com/sijunkim/EleDock/releases/latest/download/EleDock.dmg"><b>다운로드</b></a> ·
   <a href="README.md">English</a> · 한국어 · <a href="README.ja.md">日本語</a>
 </p>
 
 ---
 
-EleDocks는 Mac 메뉴 막대에 머무는 작은 앱입니다.
+EleDock은 Mac 메뉴 막대에 머무는 작은 앱입니다.
 <kbd>⌘</kbd><kbd>M</kbd>으로 창을 하나씩 Dock에 넣고, <kbd>⇧</kbd><kbd>⌘</kbd><kbd>M</kbd>으로 가장 최근 창부터 되돌립니다.
 
 ## 하는 일
@@ -28,16 +28,16 @@ EleDocks는 Mac 메뉴 막대에 머무는 작은 앱입니다.
 
 ## 설치
 
-1. [EleDocks.dmg](https://github.com/sijunkim/EleDocks/releases/latest/download/EleDocks.dmg)를 내려받아 EleDocks를 응용 프로그램 폴더로 끌어 놓습니다.
-2. EleDocks를 실행하면 메뉴 막대에 나타납니다.
-3. **시스템 설정 › 개인정보 보호 및 보안 › 손쉬운 사용**에서 EleDocks를 켭니다. 다른 앱의 창을 최소화하고 복원하는 데 필요합니다.
+1. [EleDock.dmg](https://github.com/sijunkim/EleDock/releases/latest/download/EleDock.dmg)를 내려받아 엽니다.
+2. 창에 보이는 EleDock을 더블클릭합니다. 응용 프로그램 폴더로 옮길지 묻고, 옮긴 뒤에는 설치 디스크를 꺼내고 DMG 파일을 휴지통으로 옮길지 바로 묻습니다.
+3. **시스템 설정 › 개인정보 보호 및 보안 › 손쉬운 사용**에서 EleDock을 켭니다. 다른 앱의 창을 최소화하고 복원하는 데 필요합니다.
 
 macOS 13 Ventura 이상, Apple 실리콘과 Intel Mac에서 동작합니다. Apple의 공증을 거쳤으며 한국어, 영어, 일본어를 지원합니다.
 
 ## 소스에서 빌드
 
 ```sh
-./build.sh          # build/EleDocks.app 생성 (universal)
+./build.sh          # build/EleDock.app 생성 (universal)
 swift test          # 테스트 실행
 ```
 
