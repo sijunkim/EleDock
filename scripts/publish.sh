@@ -8,6 +8,13 @@ FEED_URL=https://raw.githubusercontent.com/$REPO/main/releases/appcast.xml
 PAGES_URL=https://sijunkim.github.io/EleDock/
 SIGN_ID=${SIGN_ID:-"Developer ID Application: SiJun Kim (V7HD5GU452)"}
 GENERATE_KEYS=.build/artifacts/sparkle/Sparkle/bin/generate_keys
+# 공증 API 키 설정(NOTARY_KEY·NOTARY_KEY_ID·NOTARY_ISSUER). 저장소 밖에 두고 있으면 읽는다
+NOTARY_ENV=${NOTARY_ENV:-$HOME/.eledock-secrets/notary.env}
+if [ -f "$NOTARY_ENV" ]; then
+    # shellcheck disable=SC1090
+    . "$NOTARY_ENV"
+    export NOTARY_KEY NOTARY_KEY_ID NOTARY_ISSUER
+fi
 APPCAST_WAIT_SECONDS=600
 URL_WAIT_SECONDS=120
 RETRY_INTERVAL_SECONDS=20
@@ -141,6 +148,15 @@ case "$IDENTITIES" in
     *"\"$SIGN_ID\""*) ;;
     *) fail "키체인에 서명 ID 가 없다: $SIGN_ID" ;;
 esac
+
+if [ -n "${NOTARY_KEY:-}" ]; then
+    [ -f "$NOTARY_KEY" ] || fail "공증 API 키 파일이 없다: $NOTARY_KEY"
+    xcrun notarytool history --key "$NOTARY_KEY" --key-id "${NOTARY_KEY_ID:-}" --issuer "${NOTARY_ISSUER:-}" > /dev/null 2>&1 \
+        || fail "공증 API 키로 인증하지 못했다($NOTARY_ENV 확인)"
+else
+    xcrun notarytool history --keychain-profile "${NOTARY_PROFILE:-EleDock}" > /dev/null 2>&1 \
+        || fail "공증 키체인 프로필 ${NOTARY_PROFILE:-EleDock} 로 인증하지 못했다(notarytool store-credentials 또는 $NOTARY_ENV 준비)"
+fi
 
 [ ! -e /Volumes/EleDock ] || fail "/Volumes/EleDock 이 이미 마운트돼 있다(꺼낸 뒤 다시 실행)"
 
