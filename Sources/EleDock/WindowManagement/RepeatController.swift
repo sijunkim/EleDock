@@ -1,4 +1,3 @@
-import CoreGraphics
 import EleDockCore
 import Foundation
 
@@ -22,15 +21,9 @@ final class RepeatController {
         let mode = RepeatMode.hotKey(kind)
         guard activeMode != mode else { return }
         stop()
-        tracker.beginRepeat(kind, repeats: settings.holdToRepeat)
+        tracker.beginRepeat(kind)
         activeMode = mode
-        let start = Date()
-        tick(mode)
-        guard settings.holdToRepeat else { return }
-        schedule(from: start) {
-            guard self.isHeld(kind) else { return self.stop() }
-            self.tick(mode)
-        }
+        run(mode)
     }
 
     func stop() {
@@ -43,41 +36,33 @@ final class RepeatController {
     // 메뉴 "모두 복원".
     func restoreAll() {
         stop()
-        tracker.beginRepeat(.restore, repeats: true)
+        tracker.beginRepeat(.restore)
         restoreAllBudget = RestoreAllBudget(minimizedCount: tracker.minimizedCount)
-        let mode = RepeatMode.restoreAll
-        activeMode = mode
-        let start = Date()
-        tick(mode)
-        schedule(from: start) {
-            if self.restoreAllBudget.consumeTick(minimizedCount: self.tracker.minimizedCount) {
-                self.tick(mode)
-            } else {
-                self.stop()
-            }
-        }
+        activeMode = .restoreAll
+        run(.restoreAll)
     }
 
-    // interval 마다 `body` 를 부른다.
-    private func schedule(from start: Date, _ body: @escaping @MainActor @Sendable () -> Void) {
-        let timer = Timer(
-            fire: start.addingTimeInterval(RepeatPolicy.interval), interval: RepeatPolicy.interval, repeats: true
-        ) { _ in
-            MainActor.assumeIsolated(body)
-        }
-        RunLoop.main.add(timer, forMode: .common)
-        self.timer = timer
-    }
-
-    // 단축키가 지금 눌려 있는지.
-    private func isHeld(_ kind: Shortcut.Kind) -> Bool {
-        CGEventSource.keyState(.combinedSessionState, key: CGKeyCode(settings.shortcut(kind).keyCode))
-    }
-
-    private func tick(_ mode: RepeatMode) {
+    // tick 하나를 하고, 반복이 이어지면 tick 이 끝난 뒤 다음 tick 을 예약한다.
+    private func run(_ mode: RepeatMode) {
+        timer = nil
+        let tickStart = Date()
         switch mode.action {
         case .restore: tracker.restoreNext()
         case .minimize: tracker.minimizeNext()
         }
+        guard activeMode == mode else { return }
+        switch mode {
+        case .hotKey:
+            guard settings.holdToRepeat else { return }
+        case .restoreAll:
+            guard restoreAllBudget.consumeTick(minimizedCount: tracker.minimizedCount) else { return stop() }
+        }
+        let timer = Timer(
+            fire: RepeatPolicy.nextFire(tickStart: tickStart, tickEnd: Date()), interval: 0, repeats: false
+        ) { _ in
+            MainActor.assumeIsolated { self.run(mode) }
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        self.timer = timer
     }
 }

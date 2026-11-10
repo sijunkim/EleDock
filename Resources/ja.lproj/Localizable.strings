@@ -1,6 +1,6 @@
 /* 응용 프로그램 폴더로 옮기기 */
 "move.title" = "EleDock を“アプリケーション”フォルダに移動しますか?";
-"move.message" = "アップデートを正しく行うには、EleDock を“アプリケーション”フォルダから実行する必要があります。";
+"move.message" = "アップデートを正しく行うには、EleDock を“アプリケーション”フォルダに“EleDock”という名前でインストールする必要があります。";
 "move.confirm" = "“アプリケーション”フォルダに移動";
 "move.later" = "今はしない";
 "move.suppress" = "次回から確認しない";
@@ -53,7 +53,7 @@
 "settings.login.approval" = "ログイン時に開く（承認が必要）";
 "settings.hotkeys" = "ショートカットを使用";
 "settings.holdToRepeat" = "長押しで連続実行";
-"settings.holdToRepeat.help" = "ショートカットを押し続けると、0.25秒ごとにウインドウを1つずつしまうか復元します。";
+"settings.holdToRepeat.help" = "ショートカットを押し続けると、%@秒ごとにウインドウを1つずつしまうか復元します。";
 "settings.autoUpdate" = "アップデートを自動的に確認";
 "settings.language" = "言語";
 "settings.language.system" = "システム設定に従う";
@@ -71,6 +71,8 @@
 "shortcut.conflicts" = "このショートカットを使うアプリ";
 "shortcut.conflicts.scanning" = "実行中のアプリを確認中…";
 "shortcut.conflicts.none" = "重複するアプリはありません";
+"key.space" = "スペース";
+"key.help" = "ヘルプ";
 
 "exclusions.help" = "これらのアプリが最前面にあるときは EleDock のショートカットがオフになり、アプリ自体のショートカット（⌘M など）を使えます。ウインドウをしまうときも、これらのアプリのウインドウはスキップされます。";
 "exclusions.empty" = "除外するアプリはありません";

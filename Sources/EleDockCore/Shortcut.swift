@@ -15,15 +15,12 @@ public struct Shortcut: Equatable, Sendable {
         case restore
 
         /// Carbon 핫키 ID.
-        public var hotKeyID: UInt32 { self == .restore ? 1 : 2 }
+        public var hotKeyID: UInt32 { UInt32(Self.allCases.firstIndex(of: self) ?? 0) }
 
         /// 핫키 ID 에 해당하는 동작.
         public init?(hotKeyID: UInt32) {
-            switch hotKeyID {
-            case 1: self = .restore
-            case 2: self = .minimize
-            default: return nil
-            }
+            guard Self.allCases.indices.contains(Int(hotKeyID)) else { return nil }
+            self = Self.allCases[Int(hotKeyID)]
         }
 
         /// 저장값이 없을 때 쓰는 단축키.
@@ -97,9 +94,9 @@ public struct Shortcut: Equatable, Sendable {
         return text + (Shortcut.specialKeyNames[code] ?? layoutKeyName(code))
     }
 
-    // 자판 배치와 무관하게 이름이 정해진 키.
+    // 자판 배치·언어와 무관하게 이름이 정해진 키.
     static let specialKeyNames: [Int: String] = [
-        CarbonKey.return: "↩", CarbonKey.tab: "⇥", CarbonKey.space: "Space", CarbonKey.delete: "⌫",
+        CarbonKey.return: "↩", CarbonKey.tab: "⇥", CarbonKey.delete: "⌫",
         CarbonKey.escape: "⎋", CarbonKey.forwardDelete: "⌦", CarbonKey.leftArrow: "←",
         CarbonKey.rightArrow: "→", CarbonKey.upArrow: "↑", CarbonKey.downArrow: "↓", CarbonKey.home: "↖",
         CarbonKey.end: "↘", CarbonKey.pageUp: "⇞", CarbonKey.pageDown: "⇟",
@@ -107,7 +104,7 @@ public struct Shortcut: Equatable, Sendable {
         CarbonKey.f6: "F6", CarbonKey.f7: "F7", CarbonKey.f8: "F8", CarbonKey.f9: "F9", CarbonKey.f10: "F10",
         CarbonKey.f11: "F11", CarbonKey.f12: "F12", CarbonKey.f13: "F13", CarbonKey.f14: "F14",
         CarbonKey.f15: "F15", CarbonKey.f16: "F16", CarbonKey.f17: "F17", CarbonKey.f18: "F18",
-        CarbonKey.f19: "F19", CarbonKey.f20: "F20", CarbonKey.help: "Help", CarbonKey.keypadClear: "⌧",
+        CarbonKey.f19: "F19", CarbonKey.f20: "F20", CarbonKey.keypadClear: "⌧",
         CarbonKey.keypadEnter: "⌤",
     ]
 }

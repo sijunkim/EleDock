@@ -38,11 +38,11 @@ for arg in "$@"; do
     esac
 done
 [ -n "$VERSION" ] || usage
-[[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || fail "VERSION 은 x.y.z 형식이어야 한다: $VERSION"
+VERSION_PATTERN='^[0-9]+\.[0-9]+\.[0-9]+$'
+[[ "$VERSION" =~ $VERSION_PATTERN ]] || fail "VERSION 은 x.y.z 형식이어야 한다: $VERSION"
 
 TAG=v$VERSION
 NOTES=releases/EleDock-$VERSION.md
-ZIP=releases/EleDock-$VERSION.zip
 DMG=build/EleDock-$VERSION.dmg
 ALIAS_DMG=build/EleDock.dmg
 
@@ -96,6 +96,20 @@ on_exit() {
 trap on_exit EXIT
 trap 'exit 130' INT TERM
 
+# x.y.z 가 다른 x.y.z 보다 크다: version_gt <a> <b>
+version_gt() {
+    local a b i
+    IFS=. read -r -a a <<< "$1"
+    IFS=. read -r -a b <<< "$2"
+    for i in 0 1 2; do
+        if [ "${a[i]}" -ne "${b[i]}" ]; then
+            [ "${a[i]}" -gt "${b[i]}" ]
+            return
+        fi
+    done
+    return 1
+}
+
 echo "사전 점검: $VERSION"
 
 ORIGIN_URL=$(git remote get-url origin) || fail "origin 원격이 없다"
@@ -142,6 +156,10 @@ esac
 
 LAST_BUILD=$(sed -n 's|.*<sparkle:version>\([0-9][0-9]*\)</sparkle:version>.*|\1|p' releases/appcast.xml | sort -n | tail -1)
 BUILD=$((${LAST_BUILD:-0} + 1))
+while IFS= read -r released; do
+    [[ "$released" =~ $VERSION_PATTERN ]] || fail "appcast 의 shortVersionString 이 x.y.z 형식이 아니다: $released"
+    version_gt "$VERSION" "$released" || fail "VERSION $VERSION 이 appcast 의 $released 보다 크지 않다"
+done < <(sed -n 's|.*<sparkle:shortVersionString>\([^<]*\)</sparkle:shortVersionString>.*|\1|p' releases/appcast.xml)
 
 IDENTITIES=$(security find-identity -v -p codesigning)
 case "$IDENTITIES" in
@@ -160,6 +178,11 @@ fi
 
 [ ! -e /Volumes/EleDock ] || fail "/Volumes/EleDock 이 이미 마운트돼 있다(꺼낸 뒤 다시 실행)"
 
+LINT=$(swift format lint --strict -r Sources Tests scripts Package.swift 2>&1) || fail "swift format lint 실패:"$'\n'"$LINT"
+[ -z "$LINT" ] || fail "swift format lint 경고:"$'\n'"$LINT"
+swift build --build-tests || fail "테스트 빌드 실패"
+swift test --skip-build || fail "swift test 실패"
+
 echo "사전 점검 통과: VERSION=$VERSION BUILD=$BUILD TAG=$TAG"
 
 STEP=1
@@ -169,10 +192,12 @@ SIGN_ID=$SIGN_ID SU_FEED_URL=$FEED_URL SU_PUBLIC_ED_KEY=$SU_PUBLIC_ED_KEY \
 FIRST_BUILD=$(sed -n 's|.*<sparkle:version>\([0-9][0-9]*\)</sparkle:version>.*|\1|p' releases/appcast.xml | sed -n 1p)
 [ "$FIRST_BUILD" = "$BUILD" ] || fail "releases/appcast.xml 첫 항목이 BUILD $BUILD 가 아니다('$FIRST_BUILD')"
 
-ASSETS=("$DMG" "$ALIAS_DMG" "$ZIP")
-for delta in releases/EleDock"$BUILD"-*.delta; do
-    if [ -e "$delta" ]; then ASSETS+=("$delta"); fi
-done
+ASSETS=("$DMG" "$ALIAS_DMG")
+while IFS= read -r url; do
+    [ -f "releases/${url##*/}" ] || fail "appcast 새 항목의 파일이 releases/ 에 없다: ${url##*/}"
+    ASSETS+=("releases/${url##*/}")
+done < <(awk '/<item>/ { f = 1 } f { print } /<\/item>/ { exit }' releases/appcast.xml \
+    | grep -o '<enclosure [^>]*>' | sed -n 's/.* url="\([^"]*\)".*/\1/p')
 
 if [ "$DRY_RUN" -eq 1 ]; then
     STEP=0

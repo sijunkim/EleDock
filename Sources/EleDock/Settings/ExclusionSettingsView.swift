@@ -4,13 +4,12 @@ import SwiftUI
 /// 제외 앱 섹션: 최소화에서 건너뛸 앱 목록.
 struct ExclusionSettingsView: View {
     @ObservedObject var settings: AppSettings
-    let hotKeys: HotKeyCenter
-    @StateObject private var model = ExclusionSettingsModel()
+    @State private var selection: String?
 
     var body: some View {
         Form {
             Section {
-                List(settings.excludedBundleIDs, id: \.self, selection: $model.selection) { bundleID in
+                List(settings.excludedBundleIDs, id: \.self, selection: $selection) { bundleID in
                     AppRow(bundleID: bundleID)
                 }
                 .frame(minHeight: SettingsLayout.exclusionListMinHeight)
@@ -28,7 +27,7 @@ struct ExclusionSettingsView: View {
                         Image(systemName: "minus")
                     }
                     .buttonStyle(.borderless)
-                    .disabled(model.selection == nil)
+                    .disabled(selection == nil)
                     .help(L("exclusions.remove"))
                     .accessibilityLabel(L("exclusions.remove"))
                     Spacer()
@@ -41,11 +40,10 @@ struct ExclusionSettingsView: View {
     }
 
     private func removeSelected() {
-        if let selection = model.selection {
+        if let selection {
             settings.removeExcluded(selection)
-            hotKeys.update()
         }
-        model.selection = nil
+        selection = nil
     }
 
     // 실행 중인 앱으로 추가 메뉴를 만든다.
@@ -70,7 +68,7 @@ struct ExclusionSettingsView: View {
 
     private func add(_ bundleID: String?) {
         guard let bundleID else { return }
-        if settings.addExcluded(bundleID) { hotKeys.update() }
+        settings.addExcluded(bundleID)
     }
 
     private func chooseApps() {
@@ -105,8 +103,4 @@ struct AppRow: View {
             }
         }
     }
-}
-
-private final class ExclusionSettingsModel: ObservableObject {
-    @Published var selection: String?
 }

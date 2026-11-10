@@ -5,7 +5,7 @@ import ApplicationServices
 final class AppDelegate: NSObject, NSApplicationDelegate {
     /// AX 요청의 응답 대기 상한.
     private static let axMessagingTimeout: Float = 1.0
-    /// 권한 회수·재허용을 확인하는 간격.
+    /// 권한 변화를 확인하는 간격.
     private static let trustPollInterval: TimeInterval = 2
 
     private var tracker: WindowTracker?
@@ -13,7 +13,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var updates: UpdateController?
     private var statusMenu: StatusMenu?
     private var settingsWindow: SettingsWindowController?
-    private var trackerStarted = false
+    private var trusted = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let propData = NSAppleEventManager.shared().currentAppleEvent?.paramDescriptor(forKeyword: keyAEPropData)
@@ -21,9 +21,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         AXUIElement.systemWide.setMessagingTimeout(Self.axMessagingTimeout)
         let settings = AppSettings(defaults: .standard, domain: Bundle.main.bundleIdentifier ?? "")
         if ApplicationMover.moveIfNeeded(settings: settings) { return }
-        if !launchedAsLoginItem {
-            InstallerCleanup.offerIfNeeded()
-        }
 
         let state = AppState()
         let loginItems = LoginItemController()
@@ -39,34 +36,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         self.settingsWindow = settingsWindow
         MainMenu.install(settingsWindow: settingsWindow, updates: updates)
         statusMenu = StatusMenu(
-            tracker: tracker, repeater: repeater, hotKeys: hotKeys, state: state, settings: settings,
-            loginItems: loginItems, settingsWindow: settingsWindow)
+            tracker: tracker, repeater: repeater, state: state, settings: settings, loginItems: loginItems,
+            settingsWindow: settingsWindow)
 
         hotKeys.install()
-        _ = NSWorkspace.shared.notificationCenter.addObserver(
-            forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: .main
-        ) { note in
-            let app = note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
-            MainActor.assumeIsolated { hotKeys.update(frontmost: app) }
-        }
-
         let options = ["AXTrustedCheckOptionPrompt": true] as CFDictionary
-        if AXIsProcessTrustedWithOptions(options) {
-            trustGranted()
-        }
+        setTrusted(AXIsProcessTrustedWithOptions(options))
         let timer = Timer(timeInterval: Self.trustPollInterval, repeats: true) { _ in
-            MainActor.assumeIsolated {
-                let trusted = AXIsProcessTrusted()
-                hotKeys.update(trusted: trusted)
-                if trusted {
-                    self.trustGranted()
-                } else {
-                    self.trustRevoked()
-                }
-            }
+            MainActor.assumeIsolated { self.setTrusted(AXIsProcessTrusted()) }
         }
         RunLoop.main.add(timer, forMode: .common)
         if !launchedAsLoginItem {
+            InstallerCleanup.offerIfNeeded()
             settingsWindow.show()
         }
     }
@@ -78,15 +59,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return true
     }
 
-    private func trustGranted() {
-        guard !trackerStarted else { return }
-        trackerStarted = true
-        tracker?.start()
-    }
-
-    private func trustRevoked() {
-        guard trackerStarted else { return }
-        trackerStarted = false
-        tracker?.stop()
+    // 손쉬운 사용 권한이 바뀌면 창 추적과 단축키 등록을 맞춘다.
+    private func setTrusted(_ trusted: Bool) {
+        guard trusted != self.trusted else { return }
+        self.trusted = trusted
+        if trusted {
+            tracker?.start()
+        } else {
+            tracker?.stop()
+        }
+        hotKeys?.reconcile()
     }
 }

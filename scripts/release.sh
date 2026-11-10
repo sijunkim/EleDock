@@ -19,18 +19,6 @@ else
     NOTARY_AUTH=(--keychain-profile "${NOTARY_PROFILE:-EleDock}")
 fi
 
-if [ ! -f "releases/EleDock-$VERSION.html" ] && [ ! -f "releases/EleDock-$VERSION.md" ] && [ ! -f "releases/EleDock-$VERSION.txt" ]; then
-    echo "경고: releases/EleDock-$VERSION.html, .md 또는 .txt 릴리스 노트가 없다" >&2
-fi
-! grep -q "<sparkle:version>$BUILD</sparkle:version>" releases/appcast.xml || { echo "releases/appcast.xml 에 BUILD $BUILD 항목이 이미 있다" >&2; exit 1; }
-
-swift package resolve
-KEYCHAIN_ED_KEY=$(.build/artifacts/sparkle/Sparkle/bin/generate_keys -p) || { echo "키체인에 Sparkle 키가 없다 (generate_keys 로 먼저 생성)" >&2; exit 1; }
-if [ "$KEYCHAIN_ED_KEY" != "$SU_PUBLIC_ED_KEY" ]; then
-    echo "SU_PUBLIC_ED_KEY 가 키체인 공개 키($KEYCHAIN_ED_KEY)와 다르다" >&2
-    exit 1
-fi
-
 ./build.sh
 
 APP=build/EleDock.app
@@ -45,10 +33,13 @@ rm -f "releases/EleDock-$VERSION.zip"
 ditto -c -k --keepParent "$APP" "releases/EleDock-$VERSION.zip"
 STAGE=build/appcast
 rm -rf "$STAGE" && mkdir "$STAGE"
-cp releases/*.zip releases/EleDock-"$VERSION".* "$STAGE"/
+cp releases/*.zip "releases/EleDock-$VERSION.md" "$STAGE"/
 .build/artifacts/sparkle/Sparkle/bin/generate_appcast "$STAGE" --download-url-prefix "$DOWNLOAD_URL_PREFIX" --embed-release-notes --maximum-versions 1
-if compgen -G "$STAGE/*.delta" > /dev/null; then cp "$STAGE"/*.delta releases/; fi
 NEW_ITEM=$(awk '/<item>/ { f = 1 } f { print } /<\/item>/ { exit }' "$STAGE/appcast.xml")
+# 새 항목이 가리키는 파일(zip·델타)을 releases/ 에 둔다
+while IFS= read -r url; do
+    cp "$STAGE/${url##*/}" releases/
+done < <(grep -o '<enclosure [^>]*>' <<< "$NEW_ITEM" | sed -n 's/.* url="\([^"]*\)".*/\1/p')
 APPCAST=$(NEW_ITEM="$NEW_ITEM" awk '(/<item>/ || /<\/channel>/) && !done { print ENVIRON["NEW_ITEM"]; done = 1 } 1' releases/appcast.xml)
 printf '%s\n' "$APPCAST" > releases/appcast.xml
 

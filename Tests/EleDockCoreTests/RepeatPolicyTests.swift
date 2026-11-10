@@ -1,20 +1,17 @@
+import Foundation
 import Testing
 
 @testable import EleDockCore
 
 struct RepeatPolicyTests {
-    private func advance(
-        _ queue: inout [String], results: [String: RepeatPolicy.Attempt], durations: [String: Double] = [:]
-    ) -> (String?, [String]) {
+    private func advance(_ queue: inout [String], results: [String: RepeatPolicy.Attempt]) -> (String?, [String]) {
         var tried: [String] = []
-        var clock: Double = 0
         let entry = RepeatPolicy.advance(
             peek: { queue.first }, drop: { queue.removeFirst() },
             attempt: {
                 tried.append($0)
-                clock += durations[$0, default: 0]
                 return results[$0, default: .failure]
-            }, now: { clock })
+            })
         return (entry, tried)
     }
 
@@ -45,25 +42,6 @@ struct RepeatPolicyTests {
         #expect(queue == ["c"])
     }
 
-    @Test func slowFailureEndsTickBeforeNextCandidate() {
-        var queue = ["a", "b", "c"]
-        let (entry, tried) = advance(
-            &queue, results: ["a": .failure, "b": .success], durations: ["a": RepeatPolicy.tickBudget * 0.6])
-        #expect(entry == nil)
-        #expect(tried == ["a"])
-        #expect(queue == ["b", "c"])
-    }
-
-    @Test func fastFailuresContinueWithinTickBudget() {
-        var queue = ["a", "b", "c"]
-        let (entry, tried) = advance(
-            &queue, results: ["a": .failure, "b": .failure, "c": .success],
-            durations: ["a": RepeatPolicy.tickBudget * 0.2, "b": RepeatPolicy.tickBudget * 0.2])
-        #expect(entry == "c")
-        #expect(tried == ["a", "b", "c"])
-        #expect(queue.isEmpty)
-    }
-
     @Test func failureThenBusySendsBusyCandidate() {
         var queue = ["a", "b", "c"]
         let (entry, _) = advance(&queue, results: ["a": .failure, "b": .busy])
@@ -83,6 +61,24 @@ struct RepeatPolicyTests {
         let (entry, tried) = advance(&queue, results: [:])
         #expect(entry == nil)
         #expect(tried.isEmpty)
+    }
+
+    @Test func fastTickKeepsIntervalFromStart() {
+        let start = Date(timeIntervalSinceReferenceDate: 0)
+        let fire = RepeatPolicy.nextFire(tickStart: start, tickEnd: start.addingTimeInterval(0.1))
+        #expect(fire == start.addingTimeInterval(RepeatPolicy.interval))
+    }
+
+    @Test func tickOfExactIntervalWaitsIntervalAfterEnd() {
+        let start = Date(timeIntervalSinceReferenceDate: 0)
+        let end = start.addingTimeInterval(RepeatPolicy.interval)
+        #expect(RepeatPolicy.nextFire(tickStart: start, tickEnd: end) == end.addingTimeInterval(RepeatPolicy.interval))
+    }
+
+    @Test func slowTickWaitsIntervalAfterEnd() {
+        let start = Date(timeIntervalSinceReferenceDate: 0)
+        let end = start.addingTimeInterval(0.57)
+        #expect(RepeatPolicy.nextFire(tickStart: start, tickEnd: end) == end.addingTimeInterval(RepeatPolicy.interval))
     }
 }
 

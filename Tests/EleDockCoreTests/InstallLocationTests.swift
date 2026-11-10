@@ -3,36 +3,47 @@ import Testing
 @testable import EleDockCore
 
 struct InstallLocationTests {
-    private let home = "/Users/me"
+    private let system = "/Applications/EleDock.app"
+    private let user = "/Users/me/Applications/EleDock.app"
+    private var installPaths: [String] { [system, user] }
 
-    private func location(_ path: String, sameFile: Bool = false) -> InstallLocation {
-        InstallLocation(path: path, homeDirectory: home, isSameFileAsInstalled: sameFile)
+    private func moves(_ path: String, sameFile: Set<String> = []) -> Bool {
+        needsMove(path: path, installPaths: installPaths, sameFilePaths: sameFile)
     }
 
-    @Test func applicationsFoldersAreInstalled() {
-        #expect(location("/Applications/EleDock.app") == .applications)
-        #expect(location("/Users/me/Applications/EleDock.app") == .userApplications)
-        #expect(!location("/Applications/EleDock.app").needsMove)
-        #expect(!location("/Users/me/Applications/EleDock.app").needsMove)
+    @Test func installPathsDoNotMove() {
+        #expect(!moves(system))
+        #expect(!moves(user))
     }
 
-    @Test func otherPathNeedsMove() {
-        #expect(location("/Users/me/Downloads/EleDock.app") == .other)
-        #expect(location("/Users/me/Downloads/EleDock.app").needsMove)
+    @Test func otherPathInApplicationsNeedsMove() {
+        #expect(moves("/Applications/EleDock 2.app"))
+        #expect(moves("/Users/me/Applications/EleDock 2.app"))
+        #expect(moves("/Applications/Utilities/EleDock.app"))
     }
 
-    @Test func prefixMustBeWholeFolderName() {
-        #expect(location("/ApplicationsOld/EleDock.app").needsMove)
-        #expect(location("/Users/other/Applications/EleDock.app").needsMove)
+    @Test func outsideApplicationsNeedsMove() {
+        #expect(moves("/Users/me/Downloads/EleDock.app"))
+        #expect(moves("/Volumes/EleDock/EleDock.app"))
+        #expect(moves("/Users/other/Applications/EleDock.app"))
     }
 
     @Test func sameFileAsInstalledDoesNotMove() {
-        let link = location("/Users/me/Desktop/EleDock.app", sameFile: true)
-        #expect(link == .sameFileAsInstalled)
-        #expect(!link.needsMove)
+        #expect(!moves("/Users/me/Desktop/EleDock.app", sameFile: [user]))
     }
 
-    @Test func folderPrefixWinsOverSameFile() {
-        #expect(location("/Applications/EleDock.app", sameFile: true) == .applications)
+    @Test func otherInstallPathsExcludeKeptInstall() {
+        #expect(otherInstallPaths(installPaths, keeping: system, sameFilePaths: [system]) == [user])
+        #expect(otherInstallPaths(installPaths, keeping: user, sameFilePaths: []) == [system])
+    }
+
+    @Test func otherInstallPathsExcludeSameFileAsKeptInstall() {
+        #expect(otherInstallPaths(installPaths, keeping: system, sameFilePaths: [system, user]).isEmpty)
+    }
+
+    @Test func everyInstallPathIsOtherForBundleOutside() {
+        #expect(
+            otherInstallPaths(installPaths, keeping: "/Users/me/Downloads/EleDock.app", sameFilePaths: [])
+                == installPaths)
     }
 }

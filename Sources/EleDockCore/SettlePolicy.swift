@@ -121,23 +121,16 @@ public struct RestoreConfirmations<Entry, Key: Equatable> {
         sent.removeAll(where: shouldDiscard)
     }
 
-    /// `phase` 에 맞춰 판정하고, 스택에 되돌릴 항목을 돌려준다.
-    public mutating func resolve(phase: SettleSchedule.Phase, minimizedState: (Entry) -> Bool?) -> [Entry] {
-        guard phase == .due || phase == .expired else { return [] }
-        var putBack: [Entry] = []
+    /// `phase` 에 맞춰 판정해 확정을 기다리는 복원에서 뺀다.
+    public mutating func resolve(phase: SettleSchedule.Phase, minimizedState: (Entry) -> Bool?) {
+        guard phase == .due || phase == .expired else { return }
         for entry in unconfirmed {
             switch minimizedState(entry) {
-            case false?:
-                confirm(key(entry))
-            case true?:
-                putBack.append(entry)
-            case nil:
-                if phase == .expired { putBack.append(entry) }
+            case false?: confirm(key(entry))
+            case nil where phase != .expired: continue
+            default: unconfirmed.removeAll { key($0) == key(entry) }
             }
         }
-        let returned = putBack.map(key)
-        unconfirmed.removeAll { returned.contains(key($0)) }
-        return putBack.reversed()
     }
 }
 

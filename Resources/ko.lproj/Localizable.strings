@@ -1,6 +1,6 @@
 /* 응용 프로그램 폴더로 옮기기 */
 "move.title" = "EleDock을 응용 프로그램 폴더로 옮길까요?";
-"move.message" = "응용 프로그램 폴더에서 실행해야 업데이트가 정상 동작합니다.";
+"move.message" = "업데이트가 정상 동작하려면 EleDock을 응용 프로그램 폴더에 “EleDock” 이름으로 설치해야 합니다.";
 "move.confirm" = "응용 프로그램 폴더로 옮기기";
 "move.later" = "나중에";
 "move.suppress" = "다시 묻지 않기";
@@ -53,7 +53,7 @@
 "settings.login.approval" = "로그인 시 열기 (승인 필요)";
 "settings.hotkeys" = "단축키 사용";
 "settings.holdToRepeat" = "길게 눌러 연속 동작";
-"settings.holdToRepeat.help" = "단축키를 누르고 있으면 0.25초마다 창을 하나씩 최소화하거나 복원합니다.";
+"settings.holdToRepeat.help" = "단축키를 누르고 있으면 %@초마다 창을 하나씩 최소화하거나 복원합니다.";
 "settings.autoUpdate" = "업데이트 자동 확인";
 "settings.language" = "언어";
 "settings.language.system" = "시스템 설정 따름";
@@ -71,6 +71,8 @@
 "shortcut.conflicts" = "이 단축키를 쓰는 앱";
 "shortcut.conflicts.scanning" = "실행 중인 앱 확인 중…";
 "shortcut.conflicts.none" = "겹치는 앱 없음";
+"key.space" = "스페이스";
+"key.help" = "도움말";
 
 "exclusions.help" = "목록의 앱이 맨 앞에 있으면 EleDock 단축키가 꺼져 앱 자체 단축키(⌘M 등)를 쓸 수 있습니다. 최소화할 때도 이 앱들의 창은 건너뜁니다.";
 "exclusions.empty" = "제외한 앱 없음";

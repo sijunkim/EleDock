@@ -27,9 +27,8 @@ enum InstallerCleanup {
         guard process.terminationStatus == 0,
             let info = try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any]
         else { return [] }
-        let bundleName = Bundle.main.bundleURL.lastPathComponent
         return DiskImageMount.list(hdiutilInfo: info).filter { mount in
-            FileManager.default.fileExists(atPath: mount.mountPoint + "/" + bundleName)
+            FileManager.default.fileExists(atPath: mount.mountPoint + "/" + ApplicationMover.installedName)
         }
     }
 

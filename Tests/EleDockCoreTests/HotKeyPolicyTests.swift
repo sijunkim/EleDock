@@ -4,7 +4,9 @@ import Testing
 
 struct HotKeyPolicyTests {
     @Test func registersWhenTrustedEnabledIdleAndFrontmostAllowed() {
-        #expect(HotKeyPolicy.shouldRegister(trusted: true, enabled: true, recording: false, frontmostExcluded: false))
+        #expect(
+            HotKeyPolicy.shouldRegister(
+                trusted: true, enabled: true, recording: false, frontmostExcluded: false, holding: false))
     }
 
     @Test(arguments: [
@@ -16,6 +18,24 @@ struct HotKeyPolicyTests {
     func anyBlockingConditionUnregisters(trusted: Bool, enabled: Bool, recording: Bool, frontmostExcluded: Bool) {
         #expect(
             !HotKeyPolicy.shouldRegister(
-                trusted: trusted, enabled: enabled, recording: recording, frontmostExcluded: frontmostExcluded))
+                trusted: trusted, enabled: enabled, recording: recording, frontmostExcluded: frontmostExcluded,
+                holding: false))
+    }
+
+    @Test func holdingKeepsRegistrationWhenFrontmostBecomesExcluded() {
+        #expect(
+            HotKeyPolicy.shouldRegister(
+                trusted: true, enabled: true, recording: false, frontmostExcluded: true, holding: true))
+    }
+
+    @Test(arguments: [
+        (false, true, false),
+        (true, false, false),
+        (true, true, true),
+    ])
+    func holdingDoesNotOverrideOtherConditions(trusted: Bool, enabled: Bool, recording: Bool) {
+        #expect(
+            !HotKeyPolicy.shouldRegister(
+                trusted: trusted, enabled: enabled, recording: recording, frontmostExcluded: false, holding: true))
     }
 }

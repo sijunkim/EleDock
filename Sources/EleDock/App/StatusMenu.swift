@@ -14,19 +14,17 @@ final class StatusMenu: NSObject, NSMenuDelegate {
     private let statusItem: NSStatusItem
     private let tracker: WindowTracker
     private let repeater: RepeatController
-    private let hotKeys: HotKeyCenter
     private let state: AppState
     private let settings: AppSettings
     private let loginItems: LoginItemController
     private let settingsWindow: SettingsWindowController
 
     init(
-        tracker: WindowTracker, repeater: RepeatController, hotKeys: HotKeyCenter, state: AppState,
-        settings: AppSettings, loginItems: LoginItemController, settingsWindow: SettingsWindowController
+        tracker: WindowTracker, repeater: RepeatController, state: AppState, settings: AppSettings,
+        loginItems: LoginItemController, settingsWindow: SettingsWindowController
     ) {
         self.tracker = tracker
         self.repeater = repeater
-        self.hotKeys = hotKeys
         self.state = state
         self.settings = settings
         self.loginItems = loginItems
@@ -114,7 +112,7 @@ final class StatusMenu: NSObject, NSMenuDelegate {
     }
 
     @objc private func toggleHotKeys() {
-        hotKeys.setEnabled(!settings.hotKeysEnabled)
+        settings.hotKeysEnabled.toggle()
     }
 
     @objc private func showSettings() {

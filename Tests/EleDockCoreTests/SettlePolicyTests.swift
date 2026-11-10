@@ -79,32 +79,31 @@ struct RestoreConfirmationsTests {
     @Test func waitsForNotificationsBeforeDeadline() {
         var confirmations = confirmations(["a"])
         for phase in [SettleSchedule.Phase.early, .waiting] {
-            let putBack = confirmations.resolve(
+            confirmations.resolve(
                 phase: phase,
                 minimizedState: { _ in
                     Issue.record("상태 조회가 불렸다")
                     return true
                 })
-            #expect(putBack.isEmpty)
         }
         #expect(confirmations.unconfirmed == ["a"])
     }
 
-    @Test func dueReturnsMinimizedInOriginalStackOrder() {
+    @Test func dueSettlesMinimizedAndConfirmsRestored() {
         var confirmations = confirmations(["c", "b", "a"])
         let states: [String: Bool] = ["a": true, "b": false, "c": true]
-        let putBack = confirmations.resolve(phase: .due, minimizedState: { states[$0] })
-        #expect(putBack == ["a", "c"])
+        confirmations.resolve(phase: .due, minimizedState: { states[$0] })
         #expect(confirmations.isResolved)
         #expect(confirmations.focusTarget == "b")
     }
 
     @Test func dueKeepsUnknownUntilExpired() {
         var confirmations = confirmations(["a"])
-        #expect(confirmations.resolve(phase: .due, minimizedState: { _ in nil }).isEmpty)
+        confirmations.resolve(phase: .due, minimizedState: { _ in nil })
         #expect(confirmations.unconfirmed == ["a"])
-        #expect(confirmations.resolve(phase: .expired, minimizedState: { _ in nil }) == ["a"])
+        confirmations.resolve(phase: .expired, minimizedState: { _ in nil })
         #expect(confirmations.isResolved)
+        #expect(confirmations.focusTarget == nil)
     }
 
     @Test func focusesLastSentConfirmedRestore() {
@@ -128,22 +127,36 @@ struct RestoreConfirmationsTests {
     }
 
     @Test func resentEntryIsTrackedOnce() {
-        var confirmations = confirmations(["a", "a"])
+        let confirmations = confirmations(["a", "a"])
         #expect(confirmations.unconfirmed == ["a"])
     }
 
-    @Test func discardedEntriesAreNotReturned() {
+    @Test func discardedEntriesAreNotJudged() {
         var confirmations = confirmations(["a1", "b1"])
         confirmations.discard { $0.hasPrefix("a") }
-        #expect(confirmations.resolve(phase: .expired, minimizedState: { _ in true }) == ["b1"])
+        #expect(confirmations.unconfirmed == ["b1"])
+        var judged: [String] = []
+        confirmations.resolve(
+            phase: .expired,
+            minimizedState: {
+                judged.append($0)
+                return true
+            })
+        #expect(judged == ["b1"])
+        #expect(confirmations.isResolved)
     }
 
     @Test func confirmRightAfterRecordStaysConfirmed() {
         var confirmations = confirmations(["a"])
         confirmations.confirm("a")
         #expect(confirmations.isResolved)
+        confirmations.resolve(
+            phase: .expired,
+            minimizedState: { _ in
+                Issue.record("상태 조회가 불렸다")
+                return true
+            })
         #expect(confirmations.focusTarget == "a")
-        #expect(confirmations.resolve(phase: .expired, minimizedState: { _ in true }).isEmpty)
     }
 
     @Test func failedRecordIsRevertedToEarlierState() {
@@ -153,7 +166,7 @@ struct RestoreConfirmationsTests {
         confirmations.record("b")
         confirmations = recorded
         #expect(confirmations.unconfirmed == ["a"])
-        #expect(confirmations.resolve(phase: .expired, minimizedState: { _ in true }) == ["a"])
+        #expect(confirmations.focusTarget == nil)
     }
 }
 

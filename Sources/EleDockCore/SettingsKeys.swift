@@ -16,12 +16,6 @@ public enum SettingsKeys {
     /// 단축키 Carbon 수식키 마스크.
     public static func modifiers(_ kind: Shortcut.Kind) -> String { "\(kind.rawValue)Modifiers" }
 
-    /// 저장된 제외 앱 목록에서 중복을 뺀다.
-    public static func excludedBundleIDs(stored: [String]) -> [String] {
-        var seen = Set<String>()
-        return stored.filter { seen.insert($0).inserted }
-    }
-
     /// 저장값이 없을 때 쓰는 값.
     public static let defaults: [String: Bool] = [hotKeysEnabled: true, holdToRepeat: true]
 }

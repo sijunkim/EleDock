@@ -21,9 +21,4 @@ struct SettingsKeysTests {
     @Test func defaultsTurnOnHotKeysAndHoldToRepeat() {
         #expect(SettingsKeys.defaults == ["hotKeysEnabled": true, "holdToRepeatEnabled": true])
     }
-
-    @Test func excludedAppsDropDuplicatesKeepingFirstOrder() {
-        #expect(SettingsKeys.excludedBundleIDs(stored: ["b", "a", "b", "c", "a"]) == ["b", "a", "c"])
-        #expect(SettingsKeys.excludedBundleIDs(stored: []).isEmpty)
-    }
 }

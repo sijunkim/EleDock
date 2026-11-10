@@ -27,10 +27,7 @@ struct ShortcutSettingsView: View {
             } footer: {
                 VStack(alignment: .trailing) {
                     SectionFooter(L("shortcut.help"))
-                    Button {
-                        settings.resetShortcuts()
-                        hotKeys.update()
-                    } label: {
+                    Button(action: settings.resetShortcuts) {
                         Text(L("shortcut.reset")).frame(width: SettingsLayout.shortcutButtonWidth)
                     }
                     .buttonStyle(.bordered)

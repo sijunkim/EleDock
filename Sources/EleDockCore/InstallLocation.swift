@@ -1,27 +1,9 @@
-/// 실행 중인 앱 번들이 놓인 위치.
-public enum InstallLocation: Equatable, Sendable {
-    /// /Applications 안.
-    case applications
-    /// ~/Applications 안.
-    case userApplications
-    /// 응용 프로그램 폴더의 앱과 같은 파일.
-    case sameFileAsInstalled
-    /// 그 밖의 위치.
-    case other
+/// 정규 설치 경로 중 남길 번들 `path` 와 같은 설치본이 아닌 경로를 돌려준다.
+public func otherInstallPaths(_ installPaths: [String], keeping path: String, sameFilePaths: Set<String>) -> [String] {
+    installPaths.filter { $0 != path && !sameFilePaths.contains($0) }
+}
 
-    /// 번들 경로로 분류한다.
-    public init(path: String, homeDirectory: String, isSameFileAsInstalled: Bool) {
-        if path.hasPrefix("/Applications/") {
-            self = .applications
-        } else if path.hasPrefix(homeDirectory + "/Applications/") {
-            self = .userApplications
-        } else if isSameFileAsInstalled {
-            self = .sameFileAsInstalled
-        } else {
-            self = .other
-        }
-    }
-
-    /// 응용 프로그램 폴더로 옮기기를 권하는 위치다.
-    public var needsMove: Bool { self == .other }
+/// 번들이 정규 설치 경로가 아니어서 정규 경로로 설치해야 하는지 판정한다.
+public func needsMove(path: String, installPaths: [String], sameFilePaths: Set<String>) -> Bool {
+    otherInstallPaths(installPaths, keeping: path, sameFilePaths: sameFilePaths).count == installPaths.count
 }

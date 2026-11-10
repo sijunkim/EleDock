@@ -33,6 +33,7 @@ final class SettingsWindowController: NSObject, NSToolbarDelegate {
         self.navigation = navigation
         window = NSWindow(contentViewController: split)
         super.init()
+        window.isReleasedWhenClosed = false
         window.styleMask = [.titled, .closable, .miniaturizable, .fullSizeContentView]
         let toolbar = NSToolbar()
         toolbar.delegate = self
@@ -42,13 +43,10 @@ final class SettingsWindowController: NSObject, NSToolbarDelegate {
             NSSize(width: SettingsLayout.sidebarWidth + SettingsLayout.detailWidth, height: SettingsLayout.height))
         window.center()
         titleObservation = navigation.$section.sink { [split] in split.title = $0.title }
-        let nc = NotificationCenter.default
-        for (name, object) in [
-            (NSWindow.willCloseNotification, window), (NSApplication.didResignActiveNotification, nil),
-        ] {
-            _ = nc.addObserver(forName: name, object: object, queue: .main) { _ in
-                MainActor.assumeIsolated { hotKeys.stopRecording() }
-            }
+        _ = NotificationCenter.default.addObserver(
+            forName: NSWindow.didResignKeyNotification, object: window, queue: .main
+        ) { _ in
+            MainActor.assumeIsolated { hotKeys.stopRecording() }
         }
     }
 
@@ -132,10 +130,9 @@ private struct SettingsDetail: View {
 
     var body: some View {
         switch navigation.section {
-        case .general:
-            GeneralSettingsView(updater: updater, settings: settings, loginItems: loginItems, hotKeys: hotKeys)
+        case .general: GeneralSettingsView(updater: updater, settings: settings, loginItems: loginItems)
         case .shortcuts: ShortcutSettingsView(state: state, settings: settings, hotKeys: hotKeys)
-        case .exclusions: ExclusionSettingsView(settings: settings, hotKeys: hotKeys)
+        case .exclusions: ExclusionSettingsView(settings: settings)
         case .about: AboutSettingsView(updater: updater, state: state)
         }
     }

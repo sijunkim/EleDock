@@ -8,11 +8,10 @@ struct ShortcutRecorder: View {
     @ObservedObject var state: AppState
     @ObservedObject var settings: AppSettings
     let hotKeys: HotKeyCenter
-    @StateObject private var model = RecorderModel()
+    @State private var message: String?
 
     var body: some View {
         let recording = state.recordingKind == kind
-        let message = recording ? model.message : nil
         let failed = state.failedHotKeys.contains(kind)
         VStack(alignment: .trailing, spacing: SettingsLayout.recorderMessageSpacing) {
             Button {
@@ -22,7 +21,7 @@ struct ShortcutRecorder: View {
                     .frame(width: SettingsLayout.shortcutButtonWidth)
             }
             .buttonStyle(.bordered)
-            if let message {
+            if recording, let message {
                 Text(message).font(.caption).foregroundStyle(.red)
             } else if failed {
                 Text(L("shortcut.registerFailed")).font(.caption).foregroundStyle(.red)
@@ -32,7 +31,7 @@ struct ShortcutRecorder: View {
     }
 
     private func start() {
-        model.message = nil
+        message = nil
         hotKeys.startRecording(kind) { record($0) }
     }
 
@@ -47,17 +46,13 @@ struct ShortcutRecorder: View {
         case .cancel:
             stop()
         case .missingModifier:
-            model.message = L("shortcut.error.modifier")
+            message = L("shortcut.error.modifier")
         case .duplicate:
-            model.message = L("shortcut.error.duplicate")
+            message = L("shortcut.error.duplicate")
         case .accept:
-            model.message = nil
+            message = nil
             settings.setShortcut(shortcut, for: kind)
             stop()
         }
     }
-}
-
-private final class RecorderModel: ObservableObject {
-    @Published var message: String?
 }

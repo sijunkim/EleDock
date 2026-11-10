@@ -35,28 +35,86 @@ struct MinimizeOrderTests {
         #expect(MinimizeOrder.pids(zOrder: [1, 2, 3], frontmost: 3) { $0 != 3 } == [1, 2])
     }
 
-    @Test func collectsWindowsInPidOrder() {
-        let windows = MinimizeOrder.windows(pids: [3, 1], frontmost: 3) { [$0 * 10, $0 * 10 + 1] }
-        #expect(windows == [30, 31, 10, 11])
-    }
+}
 
-    @Test func busyFrontmostStopsCollecting() {
-        var asked: [Int32] = []
-        let windows = MinimizeOrder.windows(pids: [3, 1], frontmost: 3) { pid -> [Int32]? in
-            asked.append(pid)
-            return pid == 3 ? nil : [pid]
+struct MinimizeQueueTests {
+    private func drain(_ queue: inout MinimizeQueue<Int32>) -> [Int32] {
+        var sent: [Int32] = []
+        while let window = queue.peek() {
+            sent.append(window)
+            queue.drop()
         }
-        #expect(windows == nil)
+        return sent
+    }
+
+    @Test func givesWindowsInPidOrder() {
+        var queue = MinimizeQueue(pids: [3, 1]) { [$0 * 10, $0 * 10 + 1] }
+        #expect(drain(&queue) == [30, 31, 10, 11])
+    }
+
+    @Test func queriesAppOnlyWhenReachedAndOnce() {
+        var asked: [Int32] = []
+        var queue = MinimizeQueue(pids: [3, 1]) { pid -> [Int32]? in
+            asked.append(pid)
+            return [pid * 10, pid * 10 + 1]
+        }
+        #expect(queue.peek() == 30)
         #expect(asked == [3])
+        queue.drop()
+        #expect(queue.peek() == 31)
+        #expect(asked == [3])
+        queue.drop()
+        #expect(queue.peek() == 10)
+        #expect(asked == [3, 1])
     }
 
-    @Test func busyBackgroundAppIsSkipped() {
-        let windows = MinimizeOrder.windows(pids: [3, 1, 2], frontmost: 3) { $0 == 1 ? nil : [$0] }
-        #expect(windows == [3, 2])
+    @Test func appWithoutWindowsIsPassedInSamePeek() {
+        var queue = MinimizeQueue(pids: [3, 1, 2]) { $0 == 1 ? [] : [$0] }
+        #expect(drain(&queue) == [3, 2])
     }
 
-    @Test func busyAppWithoutFrontmostIsSkipped() {
-        let windows = MinimizeOrder.windows(pids: [1, 2], frontmost: nil) { $0 == 1 ? nil : [$0] }
-        #expect(windows == [2])
+    @Test func busyFrontAppIsQueriedAgainOnNextPeek() {
+        var busy = true
+        var asked: [Int32] = []
+        var queue = MinimizeQueue(pids: [3, 1]) { pid -> [Int32]? in
+            asked.append(pid)
+            return pid == 3 && busy ? nil : [pid]
+        }
+        #expect(queue.peek() == nil)
+        busy = false
+        #expect(drain(&queue) == [3, 1])
+        #expect(asked == [3, 3, 1])
+    }
+
+    @Test func busyBackAppIsSkipped() {
+        var queue = MinimizeQueue(pids: [3, 1, 2]) { pid -> [Int32]? in
+            pid == 1 ? nil : [pid]
+        }
+        #expect(drain(&queue) == [3, 2])
+    }
+
+    @Test func windowsAreFixedWhenAppIsQueried() {
+        var windows: [Int32] = [30, 31]
+        var queue = MinimizeQueue(pids: [3]) { _ in windows }
+        #expect(queue.peek() == 30)
+        windows = [32]
+        queue.drop()
+        #expect(drain(&queue) == [31])
+    }
+
+    @Test func upcomingQueriesUntilNextAppWithWindows() {
+        var asked: [Int32] = []
+        var queue = MinimizeQueue(pids: [3, 1, 4, 2, 5]) { pid -> [Int32]? in
+            asked.append(pid)
+            switch pid {
+            case 1: return nil
+            case 4: return []
+            default: return [pid * 10, pid * 10 + 1]
+            }
+        }
+        #expect(queue.peek() == 30)
+        queue.drop()
+        #expect(queue.upcoming() == [31, 20, 21])
+        #expect(asked == [3, 1, 4, 2])
     }
 }

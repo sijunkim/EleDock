@@ -11,9 +11,9 @@ final class WindowTracker {
     private var stack = MinimizedStack<ManagedWindow>()
 
     /// 이번 동작에서 최소화할 남은 후보.
-    private var minimizeQueue: [WindowEntry]?
-    /// 최소화 반복이 끝날 때 포커스를 줄 후보.
-    private var focusCandidates: [WindowEntry]?
+    private var minimizeQueue: MinimizeQueue<WindowEntry>?
+    /// 마지막으로 최소화를 보낸 뒤 남은 후보.
+    private var focusCandidates: MinimizeQueue<WindowEntry>?
     /// 복원에서 맨 위 창이 연속으로 막힌 횟수.
     private var restoreStall = RestoreStall<ManagedWindow>()
     /// 보낸 복원의 확정 상태.
@@ -83,7 +83,7 @@ final class WindowTracker {
     func restore(window: ManagedWindow) {
         var taken = stack.take(window)
         guard taken != nil else { return }
-        beginRepeat(.restore, repeats: false)
+        beginRepeat(.restore)
         _ = restoreFromStack(pop: {
             defer { taken = nil }
             return taken
@@ -92,7 +92,7 @@ final class WindowTracker {
     }
 
     // `action` 방향의 동작을 시작한다.
-    func beginRepeat(_ action: Shortcut.Kind, repeats: Bool) {
+    func beginRepeat(_ action: Shortcut.Kind) {
         settleTask?.cancel()
         settleTask = nil
         restores.beginRepeat()
@@ -101,18 +101,14 @@ final class WindowTracker {
             minimizeQueue = nil
         } else {
             minimizes.beginRepeat()
-            minimizeQueue = MinimizeCandidates.current(settings: settings)?.filter { entry in
-                !minimizes.unconfirmed.contains { $0.window == entry.window }
-            }
+            minimizeQueue = MinimizeCandidates.queue(
+                settings: settings, excluding: minimizes.unconfirmed.map(\.window))
         }
-        guard repeats else { return }
-        observer.beginRepeat()
     }
 
     func endRepeat() {
-        observer.endRepeat()
         for entry in restores.unconfirmed.reversed() { stack.putBack(entry) }
-        let candidates = focusCandidates
+        let candidates = focusCandidates?.upcoming()
         minimizeQueue = nil
         focusCandidates = nil
         let schedule = SettleSchedule(
@@ -127,13 +123,10 @@ final class WindowTracker {
                 let phase = schedule.phase(at: now)
                 guard schedule.minimizePhase(at: now) != .early else { continue }
                 var busy = BusyGroups<pid_t>()
-                let returned = restores.resolve(phase: phase) { entry in
+                restores.resolve(phase: phase) { entry in
                     let state = readMinimizedState(entry, &busy)
                     if state == false { stack.remove(entry.window) }
                     return state
-                }
-                for entry in returned {
-                    stack.putBack(entry)
                 }
                 let resends = minimizes.resolve(
                     phase: schedule.minimizePhase(at: now), minimizedState: { readMinimizedState($0, &busy) },
@@ -182,8 +175,7 @@ final class WindowTracker {
     func minimizeNext() {
         guard
             RepeatPolicy.advance(
-                peek: { minimizeQueue?.first }, drop: { _ = minimizeQueue?.removeFirst() },
-                attempt: { minimize($0) }, now: { ProcessInfo.processInfo.systemUptime }) != nil
+                peek: { minimizeQueue?.peek() }, drop: { minimizeQueue?.drop() }, attempt: { minimize($0) }) != nil
         else { return }
         focusCandidates = minimizeQueue
     }

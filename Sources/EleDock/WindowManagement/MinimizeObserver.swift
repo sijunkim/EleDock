@@ -21,7 +21,7 @@ final class MinimizeObserver {
 
     /// 알림 등록·창 목록 조회 timeout.
     private static let registrationTimeout: Float = 0.25
-    /// 미룬 소멸 알림 등록을 다시 시도하기 전 기다리는 시간.
+    /// 미룬 알림 등록을 다시 시도하기 전 기다리는 시간.
     private static let registrationRetryDelay: TimeInterval = 0.5
 
     private var observers: [pid_t: AXObserver] = [:]
@@ -32,7 +32,6 @@ final class MinimizeObserver {
     /// 관찰 시작을 미룬 앱.
     private var deferredApps = DeferredRegistrations<NSRunningApplication, pid_t>(group: \.processIdentifier)
     private var retryTask: Task<Void, Never>?
-    private var isRepeating = false
 
     private var refcon: UnsafeMutableRawPointer { Unmanaged.passUnretained(self).toOpaque() }
 
@@ -47,7 +46,7 @@ final class MinimizeObserver {
                     guard let app = note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication else {
                         return
                     }
-                    MainActor.assumeIsolated { self.observeOrDefer(app) }
+                    MainActor.assumeIsolated { self.observeOrRetry(app) }
                 })
         }
         workspaceTokens.append(
@@ -99,22 +98,6 @@ final class MinimizeObserver {
         retryTask = nil
         deferred = DeferredRegistrations(group: \.pid)
         deferredApps = DeferredRegistrations(group: \.processIdentifier)
-    }
-
-    // 소멸 알림 등록을 미룬다.
-    func beginRepeat() {
-        isRepeating = true
-    }
-
-    func endRepeat() {
-        isRepeating = false
-        if !deferred.isEmpty || !deferredApps.isEmpty { scheduleRetry() }
-    }
-
-    // 앱 관찰을 시작하거나 미룬다.
-    private func observeOrDefer(_ app: NSRunningApplication) {
-        guard isRepeating else { return observeOrRetry(app) }
-        deferApp(app)
     }
 
     // 앱 관찰을 시작한다.
@@ -179,8 +162,7 @@ final class MinimizeObserver {
         switch notification {
         case kAXWindowMiniaturizedNotification:
             onEvent(.minimized(WindowEntry(pid: element.pid, window: .ax(element))))
-            deferred.add(element)
-            if !isRepeating { flushDeferred() }
+            registerOrRetry(element)
         case kAXWindowDeminiaturizedNotification, kAXUIElementDestroyedNotification:
             deferred.remove(element)
             onEvent(.gone(.ax(element)))
@@ -189,12 +171,15 @@ final class MinimizeObserver {
         }
     }
 
-    // 미룬 소멸 알림을 등록한다.
-    private func flushDeferred() {
-        for window in deferred.flush(register: registerDestroyed) {
-            onEvent(.gone(.ax(window)))
+    // 창 소멸 알림을 등록하고, 응답 지연이면 미룬다.
+    private func registerOrRetry(_ window: AXUIElement) {
+        switch registerDestroyed(window) {
+        case .busy:
+            deferred.add(window)
+            scheduleRetry()
+        case .gone: onEvent(.gone(.ax(window)))
+        case .registered, .failed: break
         }
-        if !deferred.isEmpty || !deferredApps.isEmpty { scheduleRetry() }
     }
 
     private func scheduleRetry() {
@@ -203,9 +188,11 @@ final class MinimizeObserver {
             try? await Task.sleep(for: .seconds(Self.registrationRetryDelay))
             guard !Task.isCancelled else { return }
             retryTask = nil
-            guard !isRepeating else { return }
             _ = deferredApps.flush(register: observe)
-            flushDeferred()
+            for window in deferred.flush(register: registerDestroyed) {
+                onEvent(.gone(.ax(window)))
+            }
+            if !deferred.isEmpty || !deferredApps.isEmpty { scheduleRetry() }
         }
     }
 

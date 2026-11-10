@@ -8,40 +8,54 @@ enum ApplicationMover {
     private static let terminateWaitStep: TimeInterval = 0.1
     private static let quarantineAttribute = "com.apple.quarantine"
 
-    // 응용 프로그램 폴더로 옮겨 재실행한다.
+    /// 응용 프로그램 폴더에 설치되는 번들 이름.
+    static let installedName =
+        (Bundle.main.object(forInfoDictionaryKey: kCFBundleNameKey as String) as? String
+            ?? ProcessInfo.processInfo.processName) + ".app"
+
+    // 정규 설치 경로로 옮겨 재실행한다.
     static func moveIfNeeded(settings: AppSettings) -> Bool {
         let source = AppTranslocation.originalBundleURL()
-        guard location(of: source).needsMove, !settings.suppressMoveAlert, confirmMove(settings: settings) else {
+        let installPaths = [
+            URL(fileURLWithPath: "/Applications"),
+            FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Applications"),
+        ].map { $0.appendingPathComponent(installedName) }
+        guard
+            needsMove(
+                path: source.path, installPaths: installPaths.map(\.path),
+                sameFilePaths: sameFilePaths(as: source, in: installPaths))
+        else {
+            removeInstalls(otherThan: source, in: installPaths)
             return false
         }
-        guard let dest = copyToApplications() else {
+        guard !settings.suppressMoveAlert, confirmMove(settings: settings) else { return false }
+        guard let dest = install(at: installPaths) else {
             showFailure()
             return false
         }
+        removeInstalls(otherThan: dest, in: installPaths)
         return relaunch(at: dest, removing: source)
     }
 
-    private static var bundleName: String { Bundle.main.bundleURL.lastPathComponent }
-
-    private static var applicationDirectories: [URL] {
-        [
-            URL(fileURLWithPath: "/Applications"),
-            FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Applications"),
-        ]
+    // 번들과 같은 파일인 정규 설치 경로를 찾는다.
+    private static func sameFilePaths(as bundle: URL, in installPaths: [URL]) -> Set<String> {
+        guard let bundleID = fileID(bundle) else { return [] }
+        return Set(installPaths.filter { fileID($0)?.isEqual(bundleID) == true }.map(\.path))
     }
 
-    // 번들 위치를 분류한다.
-    private static func location(of source: URL) -> InstallLocation {
-        let sourceID = try? source.resourceValues(forKeys: [.fileResourceIdentifierKey]).fileResourceIdentifier
-        let isSameFile = applicationDirectories.contains { dir in
-            guard let sourceID,
-                let id = try? dir.appendingPathComponent(bundleName).resourceValues(forKeys: [
-                    .fileResourceIdentifierKey
-                ]).fileResourceIdentifier
-            else { return false }
-            return sourceID.isEqual(id)
+    // 남길 설치본 말고 정규 설치 경로에 있는 설치본을 끝내고 휴지통으로 옮긴다.
+    private static func removeInstalls(otherThan kept: URL, in installPaths: [URL]) {
+        let others = otherInstallPaths(
+            installPaths.map(\.path), keeping: kept.path, sameFilePaths: sameFilePaths(as: kept, in: installPaths))
+        for path in others where FileManager.default.fileExists(atPath: path) {
+            let install = URL(fileURLWithPath: path)
+            terminateRunningInstance(at: install)
+            try? FileManager.default.trashItem(at: install, resultingItemURL: nil)
         }
-        return InstallLocation(path: source.path, homeDirectory: NSHomeDirectory(), isSameFileAsInstalled: isSameFile)
+    }
+
+    private static func fileID(_ url: URL) -> (any NSCopying & NSSecureCoding & NSObjectProtocol)? {
+        try? url.resourceValues(forKeys: [.fileResourceIdentifierKey]).fileResourceIdentifier
     }
 
     // 응용 프로그램 폴더로 옮길지 묻는다.
@@ -62,23 +76,20 @@ enum ApplicationMover {
         return response == .alertFirstButtonReturn
     }
 
-    // 실행 중인 번들을 응용 프로그램 폴더로 복사한다.
-    private static func copyToApplications() -> URL? {
+    // 실행 중인 번들을 정규 설치 경로에 설치한다.
+    private static func install(at installPaths: [URL]) -> URL? {
         let fm = FileManager.default
-        for dir in applicationDirectories {
-            let target = dir.appendingPathComponent(bundleName)
+        for target in installPaths {
+            let dir = target.deletingLastPathComponent()
             let temp = dir.appendingPathComponent(".EleDock-\(UUID().uuidString).app")
             let existed = fm.fileExists(atPath: target.path)
             do {
                 try fm.createDirectory(at: dir, withIntermediateDirectories: true)
                 try fm.copyItem(at: Bundle.main.bundleURL, to: temp)
-                if existed {
-                    terminateRunningInstance(at: target)
-                    try fm.trashItem(at: target, resultingItemURL: nil)
-                }
-                try fm.moveItem(at: temp, to: target)
-                removeQuarantine(in: target)
-                return target
+                if existed { terminateRunningInstance(at: target) }
+                let installed = try fm.replaceItemAt(target, withItemAt: temp, options: .usingNewMetadataOnly) ?? target
+                removeQuarantine(in: installed)
+                return installed
             } catch {
                 try? fm.removeItem(at: temp)
                 if existed { return nil }

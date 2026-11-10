@@ -42,9 +42,14 @@ nonisolated enum MenuShortcutScanner {
         var detail: String { "\(display) · \(item.menu) > \(item.title)" }
     }
 
-    /// apps 메뉴에서 targets 단축키를 쓰는 항목.
-    static func conflicts(apps: [App], targets: [Target]) -> [Conflict] {
-        let menus = apps.map { (app: $0, items: items(pid: $0.pid)) }
+    /// apps 메뉴에서 targets 단축키를 쓰는 항목. 손쉬운 사용 권한이 없으면 nil.
+    static func conflicts(apps: [App], targets: [Target]) -> [Conflict]? {
+        let menus: [(app: App, items: [MenuItemShortcut])]
+        do throws(AccessibilityError) {
+            menus = try apps.map { app throws(AccessibilityError) in (app: app, items: try items(pid: app.pid)) }
+        } catch {
+            return nil
+        }
         guard !Task.isCancelled else { return [] }
         let titles = MenuItemShortcut.minimizeTitles(in: menus.flatMap(\.items))
         return menus.flatMap { menu in
@@ -56,8 +61,8 @@ nonisolated enum MenuShortcutScanner {
         }
     }
 
-    // pid 앱의 메뉴 항목.
-    private static func items(pid: pid_t) -> [MenuItemShortcut] {
+    // pid 앱의 메뉴 항목. 권한이 없을 때만 던진다.
+    private static func items(pid: pid_t) throws(AccessibilityError) -> [MenuItemShortcut] {
         let app = AXUIElement.application(pid: pid)
         var items: [MenuItemShortcut] = []
         do throws(AccessibilityError) {
@@ -65,6 +70,7 @@ nonisolated enum MenuShortcutScanner {
             else { return [] }
             try collect(bar as! AXUIElement, menu: nil, depth: 0, into: &items)
         } catch {
+            if case .other(.apiDisabled) = error { throw error }
             return []
         }
         return items
@@ -104,6 +110,7 @@ nonisolated enum MenuShortcutScanner {
             return try element.withMessagingTimeout(messagingTimeout, body)
         } catch {
             if error.isDelay { throw error }
+            if case .other(.apiDisabled) = error { throw error }
             return nil
         }
     }

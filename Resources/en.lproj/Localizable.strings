@@ -1,6 +1,6 @@
 /* 응용 프로그램 폴더로 옮기기 */
 "move.title" = "Move EleDock to the Applications folder?";
-"move.message" = "EleDock must run from the Applications folder for updates to work.";
+"move.message" = "For updates to work, EleDock must be installed as “EleDock” in the Applications folder.";
 "move.confirm" = "Move to Applications Folder";
 "move.later" = "Not Now";
 "move.suppress" = "Don’t ask again";
@@ -53,7 +53,7 @@
 "settings.login.approval" = "Open at login (approval required)";
 "settings.hotkeys" = "Enable shortcuts";
 "settings.holdToRepeat" = "Repeat while holding shortcut";
-"settings.holdToRepeat.help" = "Holding a shortcut minimizes or restores one window every 0.25 seconds.";
+"settings.holdToRepeat.help" = "Holding a shortcut minimizes or restores one window every %@ seconds.";
 "settings.autoUpdate" = "Automatically check for updates";
 "settings.language" = "Language";
 "settings.language.system" = "Use System Setting";
@@ -71,6 +71,8 @@
 "shortcut.conflicts" = "Apps Using These Shortcuts";
 "shortcut.conflicts.scanning" = "Checking running apps…";
 "shortcut.conflicts.none" = "No Conflicting Apps";
+"key.space" = "Space";
+"key.help" = "Help";
 
 "exclusions.help" = "When one of these apps is in front, EleDock shortcuts are turned off so the app’s own shortcuts (such as ⌘M) work. Its windows are also skipped when minimizing.";
 "exclusions.empty" = "No Excluded Apps";

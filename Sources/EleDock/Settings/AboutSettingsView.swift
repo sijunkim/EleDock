@@ -4,6 +4,8 @@ import SwiftUI
 
 /// 정보 섹션: 앱 아이콘, 워드마크, 버전, 업데이트 확인.
 struct AboutSettingsView: View {
+    private static let websiteURL = URL(string: "https://sijunkim.github.io/EleDock/")
+
     let updater: SPUUpdater?
     @ObservedObject var state: AppState
 
@@ -47,7 +49,9 @@ struct AboutSettingsView: View {
                 .padding(.bottom, SettingsLayout.aboutSpacing)
             } footer: {
                 VStack(spacing: SettingsLayout.aboutSpacing) {
-                    Text(L("about.website"))
+                    if let url = Self.websiteURL {
+                        Link(L("about.website"), destination: url)
+                    }
                     Text(L("about.copyright"))
                         .font(.caption)
                 }

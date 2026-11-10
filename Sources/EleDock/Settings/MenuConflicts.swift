@@ -3,7 +3,8 @@ import SwiftUI
 
 /// 단축키 탭의 "이 단축키를 쓰는 앱" 목록.
 final class MenuConflictsModel: ObservableObject {
-    @Published private(set) var conflicts: [MenuShortcutScanner.Conflict] = []
+    /// 찾은 항목. 손쉬운 사용 권한이 없으면 nil.
+    @Published private(set) var conflicts: [MenuShortcutScanner.Conflict]? = []
     @Published private(set) var isScanning = false
     private let settings: AppSettings
     private var task: Task<Void, Never>?
@@ -43,7 +44,7 @@ struct MenuConflictsSection: View {
 
     var body: some View {
         Section {
-            List(model.conflicts) { conflict in
+            List(model.conflicts ?? []) { conflict in
                 AppRow(bundleID: conflict.bundleID, detail: conflict.detail)
             }
             .frame(minHeight: SettingsLayout.conflictListMinHeight)
@@ -54,7 +55,9 @@ struct MenuConflictsSection: View {
                         Text(L("shortcut.conflicts.scanning"))
                     }
                     .foregroundStyle(.secondary)
-                } else if model.conflicts.isEmpty {
+                } else if model.conflicts == nil {
+                    Text(L("menu.permission.required")).foregroundStyle(.secondary)
+                } else if model.conflicts?.isEmpty == true {
                     Text(L("shortcut.conflicts.none")).foregroundStyle(.secondary)
                 }
             }

@@ -21,7 +21,6 @@ enum CarbonKey {
     static let m = 0x2E
     static let `return` = 0x24
     static let tab = 0x30
-    static let space = 0x31
     static let delete = 0x33
     static let escape = 0x35
     static let forwardDelete = 0x75
@@ -53,7 +52,6 @@ enum CarbonKey {
     static let f18 = 0x4F
     static let f19 = 0x50
     static let f20 = 0x5A
-    static let help = 0x72
     static let keypadClear = 0x47
     static let keypadEnter = 0x4C
 }

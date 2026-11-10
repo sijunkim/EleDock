@@ -15,7 +15,7 @@ enum Relauncher {
 
     /// 앱을 다시 열도록 하고 종료한다.
     static func relaunchAndTerminate() {
-        guard openAfterExit(Bundle.main.bundleURL) else { return }
+        guard openAfterExit(AppTranslocation.originalBundleURL()) else { return }
         NSApp.terminate(nil)
     }
 }

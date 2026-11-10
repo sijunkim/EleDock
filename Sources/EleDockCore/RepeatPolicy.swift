@@ -37,22 +37,18 @@ public enum RepeatPolicy {
         case failure
     }
 
-    /// 한 tick 이 후보 시도에 쓰는 시간 상한.
-    public static let tickBudget: TimeInterval = 0.2
+    /// 다음 tick 시각.
+    public static func nextFire(tickStart: Date, tickEnd: Date) -> Date {
+        let onTime = tickStart.addingTimeInterval(interval)
+        return tickEnd < onTime ? onTime : tickEnd.addingTimeInterval(interval)
+    }
 
     /// 한 tick 을 진행해 보낸 후보를 돌려준다.
-    public static func advance<Entry>(
-        peek: () -> Entry?, drop: () -> Void, attempt: (Entry) -> Attempt, now: () -> TimeInterval
-    ) -> Entry? {
-        let start = now()
-        var longest: TimeInterval = 0
+    public static func advance<Entry>(peek: () -> Entry?, drop: () -> Void, attempt: (Entry) -> Attempt) -> Entry? {
         while let entry = peek() {
-            let attemptStart = now()
-            guard attemptStart - start + longest <= tickBudget else { return nil }
             let result = attempt(entry)
-            longest = max(longest, now() - attemptStart)
             drop()
-            if result == .success || result == .busy { return entry }
+            if result != .failure { return entry }
         }
         return nil
     }

@@ -1,6 +1,7 @@
 import AppKit
 import ApplicationServices
 import Carbon.HIToolbox
+import Combine
 import EleDockCore
 
 /// 최소화·복원 전역 단축키를 등록·해제한다.
@@ -13,7 +14,10 @@ final class HotKeyCenter {
     private let repeater: RepeatController
     private var handlerRef: EventHandlerRef?
     private var hotKeyRefs: [Shortcut.Kind: (ref: EventHotKeyRef, shortcut: Shortcut)] = [:]
-    private var recordingMonitor: Any?
+    private var triggers: Set<AnyCancellable> = []
+    private var recordingMonitor: Any? {
+        didSet { if let oldValue { NSEvent.removeMonitor(oldValue) } }
+    }
 
     init(state: AppState, settings: AppSettings, repeater: RepeatController) {
         self.state = state
@@ -21,7 +25,7 @@ final class HotKeyCenter {
         self.repeater = repeater
     }
 
-    // 핫키 이벤트 핸들러를 설치한다.
+    // 핫키 이벤트 핸들러를 설치하고 등록 상태를 맞춘다.
     func install() {
         guard handlerRef == nil else { return }
         var eventTypes = [
@@ -33,30 +37,29 @@ final class HotKeyCenter {
         let status = InstallEventHandler(
             GetApplicationEventTarget(), hotKeyHandler, eventTypes.count, &eventTypes, userData, &ref)
         if status == noErr { handlerRef = ref }
-        update()
+        settings.didChange.sink { [weak self] in self?.reconcile() }.store(in: &triggers)
+        NSWorkspace.shared.publisher(for: \.frontmostApplication, options: .new)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in self?.reconcile() }
+            .store(in: &triggers)
+        reconcile()
     }
 
     fileprivate func handle(_ kind: Shortcut.Kind, eventKind: UInt32) {
         switch eventKind {
         case UInt32(kEventHotKeyPressed): repeater.start(kind)
-        case UInt32(kEventHotKeyReleased): repeater.stop()
+        case UInt32(kEventHotKeyReleased): stopRepeat()
         default: break
         }
     }
 
-    /// "단축키 사용" 을 바꾸고 등록 상태를 맞춘다.
-    func setEnabled(_ enabled: Bool) {
-        settings.hotKeysEnabled = enabled
-        update()
-    }
-
-    // 단축키 등록 상태를 맞춘다.
-    func update(
-        trusted: Bool = AXIsProcessTrusted(), frontmost: NSRunningApplication? = NSWorkspace.shared.frontmostApplication
-    ) {
+    /// 설정·맨 앞 앱·권한·녹화·반복 상태에 맞게 단축키를 등록하거나 해제한다.
+    func reconcile() {
+        let holding = repeater.activeMode?.stopsOnUnregister == true
         let wanted = HotKeyPolicy.shouldRegister(
-            trusted: trusted, enabled: settings.hotKeysEnabled, recording: state.recordingKind != nil,
-            frontmostExcluded: settings.isExcluded(frontmost?.bundleIdentifier))
+            trusted: AXIsProcessTrusted(), enabled: settings.hotKeysEnabled, recording: state.recordingKind != nil,
+            frontmostExcluded: settings.isExcluded(NSWorkspace.shared.frontmostApplication?.bundleIdentifier),
+            holding: holding)
         var failed: Set<Shortcut.Kind> = []
         var unregistered = false
         for kind in Shortcut.Kind.allCases {
@@ -73,8 +76,14 @@ final class HotKeyCenter {
                 failed.insert(kind)
             }
         }
-        if unregistered, repeater.activeMode?.stopsOnUnregister == true { repeater.stop() }
         if state.failedHotKeys != failed { state.failedHotKeys = failed }
+        if unregistered, holding { stopRepeat() }
+    }
+
+    // 단축키 반복을 끝내고 등록 상태를 맞춘다.
+    private func stopRepeat() {
+        repeater.stop()
+        reconcile()
     }
 
     private func register(_ shortcut: Shortcut, kind: Shortcut.Kind) -> EventHotKeyRef? {
@@ -90,21 +99,19 @@ final class HotKeyCenter {
 
     // 단축키 녹화를 시작한다.
     func startRecording(_ kind: Shortcut.Kind, handler: @escaping @MainActor (NSEvent) -> Void) {
-        stopRecording()
-        state.recordingKind = kind
         recordingMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
             MainActor.assumeIsolated { handler(event) }
             return nil
         }
-        update()
+        state.recordingKind = kind
+        reconcile()
     }
 
     func stopRecording() {
-        guard let monitor = recordingMonitor else { return }
-        NSEvent.removeMonitor(monitor)
+        guard state.recordingKind != nil else { return }
         recordingMonitor = nil
         state.recordingKind = nil
-        update()
+        reconcile()
     }
 }
 

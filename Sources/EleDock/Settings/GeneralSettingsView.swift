@@ -1,3 +1,4 @@
+import Combine
 import EleDockCore
 import Sparkle
 import SwiftUI
@@ -7,15 +8,13 @@ struct GeneralSettingsView: View {
     let updater: SPUUpdater?
     @ObservedObject var settings: AppSettings
     @ObservedObject var loginItems: LoginItemController
-    let hotKeys: HotKeyCenter
-    @StateObject private var model: GeneralSettingsModel
+    @State private var automaticallyChecks: Bool
 
-    init(updater: SPUUpdater?, settings: AppSettings, loginItems: LoginItemController, hotKeys: HotKeyCenter) {
+    init(updater: SPUUpdater?, settings: AppSettings, loginItems: LoginItemController) {
         self.updater = updater
         self.settings = settings
         self.loginItems = loginItems
-        self.hotKeys = hotKeys
-        _model = StateObject(wrappedValue: GeneralSettingsModel(updater: updater))
+        _automaticallyChecks = State(initialValue: updater?.automaticallyChecksForUpdates ?? false)
     }
 
     var body: some View {
@@ -42,41 +41,32 @@ struct GeneralSettingsView: View {
                         set: { _ in loginItems.toggle() }))
             }
             Section {
-                Toggle(
-                    L("settings.hotkeys"),
-                    isOn: Binding(
-                        get: { settings.hotKeysEnabled },
-                        set: { hotKeys.setEnabled($0) }))
+                Toggle(L("settings.hotkeys"), isOn: $settings.hotKeysEnabled)
                 Toggle(isOn: $settings.holdToRepeat) {
                     Text(L("settings.holdToRepeat")).dimmed(!settings.hotKeysEnabled)
                 }
                 .disabled(!settings.hotKeysEnabled)
             } footer: {
-                SectionFooter(L("settings.holdToRepeat.help"))
+                SectionFooter(String(format: L("settings.holdToRepeat.help"), RepeatPolicy.interval.formatted()))
             }
             Section {
                 Toggle(
                     L("settings.autoUpdate"),
                     isOn: Binding(
-                        get: { model.automaticallyChecks },
-                        set: {
-                            model.automaticallyChecks = $0
-                            updater?.automaticallyChecksForUpdates = $0
-                        })
+                        get: { automaticallyChecks },
+                        set: { updater?.automaticallyChecksForUpdates = $0 })
                 )
                 .disabled(updater == nil)
+                .onReceive(automaticallyChecksChanges) { automaticallyChecks = $0 }
             }
         }
         .formStyle(.grouped)
         .onAppear { loginItems.refresh() }
     }
-}
 
-// 일반 섹션의 화면 상태.
-private final class GeneralSettingsModel: ObservableObject {
-    @Published var automaticallyChecks: Bool
-
-    init(updater: SPUUpdater?) {
-        automaticallyChecks = updater?.automaticallyChecksForUpdates ?? false
+    // Sparkle 이 "업데이트 자동 확인" 값을 바꿀 때마다 보내는 새 값.
+    private var automaticallyChecksChanges: AnyPublisher<Bool, Never> {
+        updater?.publisher(for: \.automaticallyChecksForUpdates, options: .new).eraseToAnyPublisher()
+            ?? Empty().eraseToAnyPublisher()
     }
 }
