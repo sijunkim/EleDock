@@ -53,7 +53,7 @@
 "settings.login.approval" = "Open at login (approval required)";
 "settings.hotkeys" = "Enable shortcuts";
 "settings.holdToRepeat" = "Repeat while holding shortcut";
-"settings.holdToRepeat.help" = "Holding a shortcut minimizes or restores one window every %@ seconds.";
+"settings.holdToRepeat.help" = "Hold a shortcut and windows keep going, one after another. Let go and it stops.";
 "settings.autoUpdate" = "Automatically check for updates";
 "settings.language" = "Language";
 "settings.language.system" = "Use System Setting";

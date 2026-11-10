@@ -53,7 +53,7 @@
 "settings.login.approval" = "로그인 시 열기 (승인 필요)";
 "settings.hotkeys" = "단축키 사용";
 "settings.holdToRepeat" = "길게 눌러 연속 동작";
-"settings.holdToRepeat.help" = "단축키를 누르고 있으면 %@초마다 창을 하나씩 최소화하거나 복원합니다.";
+"settings.holdToRepeat.help" = "단축키를 누르고 있으면 창이 이어서 최소화되거나 복원되고, 손을 떼면 멈춥니다.";
 "settings.autoUpdate" = "업데이트 자동 확인";
 "settings.language" = "언어";
 "settings.language.system" = "시스템 설정 따름";

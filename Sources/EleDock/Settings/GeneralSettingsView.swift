@@ -47,7 +47,7 @@ struct GeneralSettingsView: View {
                 }
                 .disabled(!settings.hotKeysEnabled)
             } footer: {
-                SectionFooter(String(format: L("settings.holdToRepeat.help"), RepeatPolicy.interval.formatted()))
+                SectionFooter(L("settings.holdToRepeat.help"))
             }
             Section {
                 Toggle(

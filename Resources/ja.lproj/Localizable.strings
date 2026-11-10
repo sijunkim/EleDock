@@ -53,7 +53,7 @@
 "settings.login.approval" = "ログイン時に開く（承認が必要）";
 "settings.hotkeys" = "ショートカットを使用";
 "settings.holdToRepeat" = "長押しで連続実行";
-"settings.holdToRepeat.help" = "ショートカットを押し続けると、%@秒ごとにウインドウを1つずつしまうか復元します。";
+"settings.holdToRepeat.help" = "ショートカットを押し続けると、ウインドウを次々にしまったり戻したりし、離すと止まります。";
 "settings.autoUpdate" = "アップデートを自動的に確認";
 "settings.language" = "言語";
 "settings.language.system" = "システム設定に従う";
