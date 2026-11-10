@@ -47,27 +47,27 @@ final class HotKeyCenter {
 
     fileprivate func handle(_ kind: Shortcut.Kind, eventKind: UInt32) {
         switch eventKind {
-        case UInt32(kEventHotKeyPressed): repeater.start(kind)
-        case UInt32(kEventHotKeyReleased): stopRepeat()
+        case UInt32(kEventHotKeyPressed): repeater.press(kind)
+        case UInt32(kEventHotKeyReleased): release(kind)
         default: break
         }
     }
 
     /// 설정·맨 앞 앱·권한·녹화·반복 상태에 맞게 단축키를 등록하거나 해제한다.
     func reconcile() {
-        let holding = repeater.activeMode?.stopsOnUnregister == true
+        let holding = repeater.isHeld
         let wanted = HotKeyPolicy.shouldRegister(
             trusted: AXIsProcessTrusted(), enabled: settings.hotKeysEnabled, recording: state.recordingKind != nil,
             frontmostExcluded: settings.isExcluded(NSWorkspace.shared.frontmostApplication?.bundleIdentifier),
             holding: holding)
         var failed: Set<Shortcut.Kind> = []
-        var unregistered = false
+        var unregistered: Set<Shortcut.Kind> = []
         for kind in Shortcut.Kind.allCases {
             let shortcut = settings.shortcut(kind)
             if let current = hotKeyRefs[kind], !wanted || current.shortcut != shortcut {
                 UnregisterEventHotKey(current.ref)
                 hotKeyRefs[kind] = nil
-                unregistered = true
+                unregistered.insert(kind)
             }
             guard wanted, hotKeyRefs[kind] == nil else { continue }
             if let ref = register(shortcut, kind: kind) {
@@ -77,12 +77,12 @@ final class HotKeyCenter {
             }
         }
         if state.failedHotKeys != failed { state.failedHotKeys = failed }
-        if unregistered, holding { stopRepeat() }
+        if holding, case .hotKey(let kind) = repeater.activeMode, unregistered.contains(kind) { release(kind) }
     }
 
-    // 단축키 반복을 끝내고 등록 상태를 맞춘다.
-    private func stopRepeat() {
-        repeater.stop()
+    // 단축키를 뗀 것으로 하고 등록 상태를 맞춘다.
+    private func release(_ kind: Shortcut.Kind) {
+        repeater.release(kind)
         reconcile()
     }
 

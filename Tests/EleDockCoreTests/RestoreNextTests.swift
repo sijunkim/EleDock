@@ -7,7 +7,7 @@ struct RestoreNextTests {
     /// `restoreNext` 테스트 하네스.
     private struct Harness {
         var stack: [String]
-        var stall = RestoreStall<String>()
+        var stall = Stall<String>()
         var tried: [String] = []
         var queried: [String] = []
         var now: TimeInterval = 0
@@ -16,13 +16,15 @@ struct RestoreNextTests {
             self.stack = stack
         }
 
-        mutating func run(minimized: [String: Bool], results: [String: RepeatPolicy.Attempt]) -> String? {
+        mutating func run(
+            minimized: [String: Bool], results: [String: RepeatPolicy.Attempt], waiting: Set<String> = []
+        ) -> String? {
             var stack = self.stack
             var tried: [String] = []
             var queried: [String] = []
             let restored = RepeatPolicy.restoreNext(
                 pop: { stack.popLast() }, putBack: { stack.append($0) }, moveToBottom: { stack.insert($0, at: 0) },
-                key: { $0 }, stall: &stall, now: now,
+                key: { $0 }, stall: &stall, now: now, isWaiting: { waiting.contains($0) },
                 minimizedState: {
                     queried.append($0)
                     return minimized[$0]
@@ -50,6 +52,18 @@ struct RestoreNextTests {
         #expect(restored == nil)
         #expect(harness.tried == ["b"])
         #expect(harness.stack == ["a", "b"])
+    }
+
+    @Test func waitingTopIsPutBackWithoutQueryOrStall() {
+        var harness = Harness(["a", "b"])
+        for now in [0, RepeatPolicy.stallDuration, 2 * RepeatPolicy.stallDuration] {
+            harness.now = now
+            #expect(harness.run(minimized: ["a": true, "b": true], results: ["b": .success], waiting: ["b"]) == nil)
+            #expect(harness.queried.isEmpty)
+            #expect(harness.tried.isEmpty)
+            #expect(harness.stack == ["a", "b"])
+        }
+        #expect(harness.run(minimized: ["a": true, "b": true], results: ["b": .success]) == "b")
     }
 
     @Test func failedRestoreDropsWindowAndTriesNext() {

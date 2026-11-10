@@ -1,6 +1,6 @@
 import Foundation
 
-/// 반복이 끝난 뒤 복원 확정·포커스 확인 시각.
+/// 반복이 끝난 뒤 확정·포커스 확인 시각.
 public struct SettleSchedule: Sendable {
     /// 시스템 애니메이션을 기다리는 시간.
     public static let earliestDelay: TimeInterval = 0.6
@@ -12,10 +12,6 @@ public struct SettleSchedule: Sendable {
     public static let maximumExtension: TimeInterval = 2.0
     /// 확인 주기.
     public static let checkInterval: TimeInterval = 0.25
-    /// 키를 뗀 뒤 최소화를 다시 보낼 수 있는 시간.
-    public static let resendLimit = baseWait + maximumExtension
-    /// 키를 뗀 뒤 최소화 반영을 판정하기까지의 시간.
-    public static let resendCheckDelay = baseWait
 
     /// 확인 단계.
     public enum Phase: Equatable, Sendable {
@@ -35,18 +31,12 @@ public struct SettleSchedule: Sendable {
     public let deadline: TimeInterval
     /// 응답 지연을 기다리는 상한.
     public let limit: TimeInterval
-    /// 최소화를 다시 보낼 수 있는 마지막 시각.
-    public let resendEnd: TimeInterval
-    /// 최소화 반영을 판정하는 시각.
-    public let resendCheck: TimeInterval
 
     /// `start` 에 미확인 항목 `pendingCount` 개로 시각을 정한다.
     public init(start: TimeInterval, pendingCount: Int) {
         earliest = start + Self.earliestDelay
         deadline = start + Self.baseWait + Double(pendingCount) * Self.perItemWait
         limit = deadline + Self.maximumExtension
-        resendEnd = start + Self.resendLimit
-        resendCheck = start + Self.resendCheckDelay
     }
 
     /// `now` 의 확인 단계.
@@ -56,38 +46,32 @@ public struct SettleSchedule: Sendable {
         if now < limit { return .due }
         return .expired
     }
-
-    /// `now` 의 최소화 확인 단계.
-    public func minimizePhase(at now: TimeInterval) -> Phase {
-        if now < earliest { return .early }
-        if now < resendCheck { return .waiting }
-        if now < limit { return .due }
-        return .expired
-    }
-
-    /// `now` 에 최소화를 다시 보낼 수 있는지.
-    public func allowsResend(at now: TimeInterval) -> Bool {
-        now < resendEnd
-    }
 }
 
-/// 보낸 복원을 확정하고, 확정되지 않은 것을 가린다.
-public struct RestoreConfirmations<Entry, Key: Equatable> {
+/// 앱에 보낸 최소화·복원 요청을 확정하고, 확정되지 않은 것을 가린다.
+public struct Confirmations<Entry, Key: Equatable, App: Equatable> {
     private let key: (Entry) -> Key
-    /// 확정을 기다리는 복원.
-    public private(set) var unconfirmed: [Entry] = []
+    private let app: (Entry) -> App
+    private let minimized: Bool
+    /// 확정을 기다리는 요청과 보낸 시각.
+    private var pending: [(entry: Entry, sentAt: TimeInterval)] = []
     private var sent: [Entry] = []
     private var confirmed: [Key] = []
 
-    /// 항목을 구분하는 키로 만든다.
-    public init(key: @escaping (Entry) -> Key) {
+    /// 항목 키, 항목의 앱, 요청하는 최소화 상태로 만든다.
+    public init(key: @escaping (Entry) -> Key, app: @escaping (Entry) -> App, minimized: Bool) {
         self.key = key
+        self.app = app
+        self.minimized = minimized
     }
 
-    /// 확정을 기다리는 복원이 없다.
-    public var isResolved: Bool { unconfirmed.isEmpty }
+    /// 확정을 기다리는 요청.
+    public var unconfirmed: [Entry] { pending.map(\.entry) }
 
-    /// 이번 반복에서 마지막으로 보낸 복원 중 확정된 것.
+    /// 확정을 기다리는 요청이 없다.
+    public var isResolved: Bool { pending.isEmpty }
+
+    /// 이번 반복에서 마지막으로 보낸 요청 중 확정된 것.
     public var focusTarget: Entry? {
         sent.last { confirmed.contains(key($0)) }
     }
@@ -98,114 +82,66 @@ public struct RestoreConfirmations<Entry, Key: Equatable> {
         confirmed = []
     }
 
-    /// 복원을 보냈다.
-    public mutating func record(_ entry: Entry) {
+    /// `now` 에 요청을 보냈다.
+    public mutating func record(_ entry: Entry, at now: TimeInterval) {
         let id = key(entry)
-        sent.removeAll { key($0) == id }
+        sent.removeAll { [key] in key($0) == id }
         sent.append(entry)
-        if !unconfirmed.contains(where: { key($0) == id }) {
+        if let index = pending.firstIndex(where: { key($0.entry) == id }) {
+            pending[index].sentAt = now
+        } else {
             confirmed.removeAll { $0 == id }
-            unconfirmed.append(entry)
+            pending.append((entry, now))
         }
     }
 
-    /// 창이 복원됐거나 사라졌다.
+    /// 요청이 반영됐거나 창이 사라졌다.
     public mutating func confirm(_ id: Key) {
-        unconfirmed.removeAll { key($0) == id }
+        drop(id)
         if !confirmed.contains(id) { confirmed.append(id) }
     }
 
+    private mutating func drop(_ id: Key) {
+        pending.removeAll { [key] in key($0.entry) == id }
+    }
+
     /// 조건에 맞는 항목을 판정 없이 버린다.
     public mutating func discard(where shouldDiscard: (Entry) -> Bool) {
-        unconfirmed.removeAll(where: shouldDiscard)
+        pending.removeAll { shouldDiscard($0.entry) }
         sent.removeAll(where: shouldDiscard)
     }
 
-    /// `phase` 에 맞춰 판정해 확정을 기다리는 복원에서 뺀다.
-    public mutating func resolve(phase: SettleSchedule.Phase, minimizedState: (Entry) -> Bool?) {
-        guard phase == .due || phase == .expired else { return }
-        for entry in unconfirmed {
-            switch minimizedState(entry) {
-            case false?: confirm(key(entry))
-            case nil where phase != .expired: continue
-            default: unconfirmed.removeAll { key($0) == key(entry) }
+    /// `owner` 앱에 반영을 기다리는 요청이 있는지.
+    public mutating func awaits(
+        _ owner: App, at now: TimeInterval, minimizedState: (Entry) -> Bool?, abandon: (Entry) -> Void
+    ) -> Bool {
+        for (entry, sentAt) in pending where app(entry) == owner {
+            if minimizedState(entry) == minimized {
+                confirm(key(entry))
+            } else if now - sentAt >= RepeatPolicy.stallDuration {
+                drop(key(entry))
+                abandon(entry)
+            } else {
+                return true
             }
         }
-    }
-}
-
-/// 보낸 최소화를 확정하고, 최소화되지 않은 것을 가린다.
-public struct MinimizeConfirmations<Entry, Key: Equatable> {
-    private let key: (Entry) -> Key
-    /// 확정을 기다리는 최소화.
-    public private(set) var unconfirmed: [Entry] = []
-    private var sent: [Key] = []
-    /// 다시 보낸 최소화와 그보다 뒤에 보낸 창.
-    private var resent: [(entry: Entry, successors: [Key])] = []
-
-    /// 항목을 구분하는 키로 만든다.
-    public init(key: @escaping (Entry) -> Key) {
-        self.key = key
+        return false
     }
 
-    /// 확정을 기다리는 최소화가 없다.
-    public var isResolved: Bool { unconfirmed.isEmpty }
-
-    /// 새 반복을 시작한다.
-    public mutating func beginRepeat() {
-        resent = []
-    }
-
-    /// 최소화를 보냈다.
-    public mutating func record(_ entry: Entry) {
-        let id = key(entry)
-        if unconfirmed.isEmpty && resent.isEmpty { sent = [] }
-        unconfirmed.removeAll { key($0) == id }
-        unconfirmed.append(entry)
-        resent.removeAll { key($0.entry) == id }
-        sent.removeAll { $0 == id }
-        sent.append(id)
-    }
-
-    /// 창이 최소화됐거나 사라졌다.
-    @discardableResult
-    public mutating func confirm(_ id: Key) -> [Key]? {
-        unconfirmed.removeAll { key($0) == id }
-        guard let index = resent.firstIndex(where: { key($0.entry) == id }) else { return nil }
-        return resent.remove(at: index).successors
-    }
-
-    /// 조건에 맞는 항목을 판정 없이 버린다.
-    public mutating func discard(where shouldDiscard: (Entry) -> Bool) {
-        unconfirmed.removeAll(where: shouldDiscard)
-        resent.removeAll { shouldDiscard($0.entry) }
-    }
-
-    /// `phase` 에 맞춰 판정하고, 최소화를 다시 보낼 항목을 돌려준다.
+    /// `phase` 에 맞춰 보낸 요청을 판정한다.
     public mutating func resolve(
-        phase: SettleSchedule.Phase, minimizedState: (Entry) -> Bool?, canResend: (Entry) -> Bool
-    ) -> [Entry] {
-        guard phase == .due || phase == .expired else { return [] }
-        var resend: [Entry] = []
-        var settled: [Key] = []
-        for entry in unconfirmed {
-            switch minimizedState(entry) {
-            case false?:
-                if canResend(entry) { resend.append(entry) }
-                settled.append(key(entry))
-            case true?:
-                settled.append(key(entry))
-            case nil:
-                if phase == .expired { settled.append(key(entry)) }
+        phase: SettleSchedule.Phase, minimizedState: (Entry) -> Bool?, abandon: (Entry) -> Void
+    ) {
+        guard phase == .due || phase == .expired else { return }
+        for entry in unconfirmed.reversed() {
+            let state = minimizedState(entry)
+            if state == minimized {
+                confirm(key(entry))
+            } else if state != nil || phase == .expired {
+                drop(key(entry))
+                abandon(entry)
             }
         }
-        unconfirmed.removeAll { settled.contains(key($0)) }
-        for entry in resend {
-            let id = key(entry)
-            resent.removeAll { key($0.entry) == id }
-            resent.append((entry, Array(sent.drop { $0 != id }.dropFirst())))
-        }
-        return resend
     }
 }
 

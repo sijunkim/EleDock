@@ -3,6 +3,7 @@ import ApplicationServices
 import EleDockCore
 
 typealias WindowEntry = MinimizedStack<ManagedWindow>.Entry
+typealias WindowConfirmations = Confirmations<WindowEntry, ManagedWindow, pid_t>
 
 /// 최소화·복원 대상 창.
 enum ManagedWindow: Equatable {

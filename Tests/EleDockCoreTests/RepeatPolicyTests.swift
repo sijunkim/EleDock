@@ -4,10 +4,12 @@ import Testing
 @testable import EleDockCore
 
 struct RepeatPolicyTests {
-    private func advance(_ queue: inout [String], results: [String: RepeatPolicy.Attempt]) -> (String?, [String]) {
+    private func advance(
+        _ queue: inout [String], results: [String: RepeatPolicy.Attempt], waiting: Set<String> = []
+    ) -> (String?, [String]) {
         var tried: [String] = []
         let entry = RepeatPolicy.advance(
-            peek: { queue.first }, drop: { queue.removeFirst() },
+            peek: { queue.first }, drop: { queue.removeFirst() }, isWaiting: { waiting.contains($0) },
             attempt: {
                 tried.append($0)
                 return results[$0, default: .failure]
@@ -15,23 +17,21 @@ struct RepeatPolicyTests {
         return (entry, tried)
     }
 
-    @Test func busyCountsAsSent() {
+    @Test func busyKeepsCandidateAndStopsTick() {
         var queue = ["a", "b"]
         let (entry, tried) = advance(&queue, results: ["a": .busy, "b": .success])
-        #expect(entry == "a")
+        #expect(entry == nil)
         #expect(tried == ["a"])
-        #expect(queue == ["b"])
+        #expect(queue == ["a", "b"])
     }
 
-    @Test func sameAppBusyTicksAdvanceOneCandidateEach() {
-        var queue = ["a", "b", "c"]
-        var sent: [String] = []
-        for _ in 0..<3 {
-            let (entry, _) = advance(&queue, results: ["a": .busy, "b": .busy, "c": .busy])
-            if let entry { sent.append(entry) }
-        }
-        #expect(sent == ["a", "b", "c"])
-        #expect(queue.isEmpty)
+    @Test func busyCandidateIsRetriedUntilSent() {
+        var queue = ["a", "b"]
+        var results: [String: RepeatPolicy.Attempt] = ["a": .busy, "b": .success]
+        #expect(advance(&queue, results: results).0 == nil)
+        results["a"] = .success
+        #expect(advance(&queue, results: results).0 == "a")
+        #expect(queue == ["b"])
     }
 
     @Test func failureDropsAndTriesNextInSameTick() {
@@ -42,11 +42,27 @@ struct RepeatPolicyTests {
         #expect(queue == ["c"])
     }
 
-    @Test func failureThenBusySendsBusyCandidate() {
+    @Test func waitingCandidateIsNeitherSentNorDropped() {
+        var queue = ["a", "b"]
+        let (entry, tried) = advance(&queue, results: ["a": .success, "b": .success], waiting: ["a"])
+        #expect(entry == nil)
+        #expect(tried.isEmpty)
+        #expect(queue == ["a", "b"])
+    }
+
+    @Test func waitingAfterFailureStopsWithoutSkipping() {
+        var queue = ["a", "b", "c"]
+        let (entry, tried) = advance(&queue, results: ["c": .success], waiting: ["b"])
+        #expect(entry == nil)
+        #expect(tried == ["a"])
+        #expect(queue == ["b", "c"])
+    }
+
+    @Test func failureThenBusyStopsAtBusyCandidate() {
         var queue = ["a", "b", "c"]
         let (entry, _) = advance(&queue, results: ["a": .failure, "b": .busy])
-        #expect(entry == "b")
-        #expect(queue == ["c"])
+        #expect(entry == nil)
+        #expect(queue == ["b", "c"])
     }
 
     @Test func allFailuresDrainQueue() {
@@ -83,13 +99,6 @@ struct RepeatPolicyTests {
 }
 
 struct RepeatModeTests {
-    @Test func unregisterStopsHotKeyRepeatButNotRestoreAll() {
-        #expect(!RepeatMode.restoreAll.stopsOnUnregister)
-        for kind in Shortcut.Kind.allCases {
-            #expect(RepeatMode.hotKey(kind).stopsOnUnregister)
-        }
-    }
-
     @Test func restoreAllRestoresAndHotKeyFollowsItsKind() {
         #expect(RepeatMode.restoreAll.action == .restore)
         for kind in Shortcut.Kind.allCases {
@@ -126,5 +135,84 @@ struct RestoreAllBudgetTests {
         var budget = RestoreAllBudget(minimizedCount: 0)
         let proceeds = budget.consumeTick(minimizedCount: 0)
         #expect(!proceeds)
+    }
+}
+
+struct PressDemandTests {
+    private let limit = RepeatPolicy.stallDuration
+
+    @Test func quickSecondPressIsSentAfterRelease() {
+        var demand = PressDemand()
+        demand.press()
+        demand.record(.sent, at: 0)
+        demand.release()
+        #expect(!demand.continues(repeats: true))
+        demand.press()
+        demand.release()
+        demand.record(.blocked, at: 0.3)
+        demand.record(.blocked, at: 0.55)
+        #expect(demand.continues(repeats: true))
+        demand.record(.sent, at: 0.8)
+        #expect(demand.pending == 0)
+        #expect(!demand.continues(repeats: true))
+    }
+
+    @Test func holdRepeatsOnlyWhileHeldAndEndsAtRelease() {
+        var demand = PressDemand()
+        demand.press()
+        demand.record(.sent, at: 0)
+        #expect(demand.continues(repeats: true))
+        #expect(!demand.continues(repeats: false))
+        demand.record(.blocked, at: 0.25)
+        demand.record(.sent, at: 0.6)
+        #expect(demand.continues(repeats: true))
+        demand.release()
+        #expect(!demand.continues(repeats: true))
+    }
+
+    @Test func blockedPressIsAbandonedOnceAfterStallDuration() {
+        var demand = PressDemand()
+        demand.press()
+        demand.press()
+        demand.release()
+        demand.record(.blocked, at: 0)
+        demand.record(.blocked, at: limit - 0.01)
+        #expect(demand.pending == 2)
+        demand.record(.blocked, at: limit)
+        #expect(demand.pending == 1)
+        demand.record(.blocked, at: limit + 0.25)
+        #expect(demand.pending == 1)
+    }
+
+    @Test func newPressDoesNotExtendFrontPressLimit() {
+        var demand = PressDemand()
+        demand.press()
+        demand.release()
+        demand.record(.blocked, at: 0)
+        demand.press()
+        demand.release()
+        demand.record(.blocked, at: limit)
+        #expect(demand.pending == 1)
+    }
+
+    @Test func idleDropsAllPendingPresses() {
+        var demand = PressDemand()
+        demand.press()
+        demand.press()
+        demand.release()
+        demand.record(.idle, at: 0)
+        #expect(demand.pending == 0)
+        #expect(!demand.continues(repeats: true))
+    }
+
+    @Test func sentPressRestartsStallForNextPress() {
+        var demand = PressDemand()
+        demand.press()
+        demand.press()
+        demand.release()
+        demand.record(.blocked, at: 0)
+        demand.record(.sent, at: limit - 0.01)
+        demand.record(.blocked, at: limit)
+        #expect(demand.pending == 1)
     }
 }

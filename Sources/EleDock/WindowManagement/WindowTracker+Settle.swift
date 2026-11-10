@@ -29,16 +29,4 @@ extension WindowTracker {
             () throws(AccessibilityError) in try entry.window.minimizedAttribute
         }
     }
-
-    // 맨 앞 앱의 포커스 창인지.
-    func isFocusedInFrontmost(_ entry: WindowEntry) throws(AccessibilityError) -> Bool {
-        guard NSWorkspace.shared.frontmostApplication?.processIdentifier == entry.pid else { return false }
-        do {
-            return try ManagedWindow.focused(of: entry.pid) == entry.window
-        } catch .cannotComplete {
-            throw .cannotComplete
-        } catch {
-            return false
-        }
-    }
 }

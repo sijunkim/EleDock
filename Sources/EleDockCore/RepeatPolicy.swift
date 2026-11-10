@@ -14,12 +14,6 @@ public enum RepeatMode: Equatable, Sendable {
         case .restoreAll: .restore
         }
     }
-
-    /// 단축키 등록 해제로 끝나는 반복인지.
-    public var stopsOnUnregister: Bool {
-        if case .hotKey = self { return true }
-        return false
-    }
 }
 
 /// 길게 누르기·모두 복원 반복의 규칙.
@@ -37,6 +31,16 @@ public enum RepeatPolicy {
         case failure
     }
 
+    /// tick 하나의 결과.
+    public enum Progress: Sendable {
+        /// 동작 하나를 보냈다.
+        case sent
+        /// 보낼 후보가 있지만 지금은 보낼 수 없다.
+        case blocked
+        /// 보낼 후보가 없다.
+        case idle
+    }
+
     /// 다음 tick 시각.
     public static func nextFire(tickStart: Date, tickEnd: Date) -> Date {
         let onTime = tickStart.addingTimeInterval(interval)
@@ -44,29 +48,42 @@ public enum RepeatPolicy {
     }
 
     /// 한 tick 을 진행해 보낸 후보를 돌려준다.
-    public static func advance<Entry>(peek: () -> Entry?, drop: () -> Void, attempt: (Entry) -> Attempt) -> Entry? {
+    public static func advance<Entry>(
+        peek: () -> Entry?, drop: () -> Void, isWaiting: (Entry) -> Bool, attempt: (Entry) -> Attempt
+    ) -> Entry? {
         while let entry = peek() {
-            let result = attempt(entry)
-            drop()
-            if result != .failure { return entry }
+            guard !isWaiting(entry) else { return nil }
+            switch attempt(entry) {
+            case .success:
+                drop()
+                return entry
+            case .busy:
+                return nil
+            case .failure:
+                drop()
+            }
         }
         return nil
     }
 
-    /// 같은 항목을 스택 맨 아래로 내리는 연속 막힘 횟수.
+    /// 같은 항목을 포기하는 연속 막힘 횟수.
     public static let stallLimit = 2
-    /// 같은 항목을 스택 맨 아래로 내리기 전 기다리는 시간(초).
+    /// 같은 항목을 포기하기 전 기다리는 시간(초).
     public static let stallDuration: TimeInterval = 1.5
 
     /// 스택 맨 위부터 최소화된 창 하나를 복원해 그 항목을 돌려준다.
     public static func restoreNext<Entry, Key: Equatable>(
         pop: () -> Entry?, putBack: (Entry) -> Void, moveToBottom: (Entry) -> Void, key: (Entry) -> Key,
-        stall: inout RestoreStall<Key>, now: TimeInterval, minimizedState: (Entry) -> Bool?,
+        stall: inout Stall<Key>, now: TimeInterval, isWaiting: (Entry) -> Bool, minimizedState: (Entry) -> Bool?,
         restore: (Entry) -> Attempt
     ) -> Entry? {
         var demoted: Key?
         while let entry = pop() {
             if let demoted, key(entry) == demoted {
+                putBack(entry)
+                return nil
+            }
+            if isWaiting(entry) {
                 putBack(entry)
                 return nil
             }
@@ -93,8 +110,8 @@ public enum RepeatPolicy {
     }
 }
 
-/// 복원에서 같은 항목이 연속으로 막힌 횟수와 처음 막힌 시각.
-public struct RestoreStall<Key: Equatable> {
+/// 같은 항목이 연속으로 막힌 횟수와 처음 막힌 시각.
+public struct Stall<Key: Equatable> {
     private var key: Key?
     private var count = 0
     private var firstStall: TimeInterval = 0
@@ -120,6 +137,49 @@ public struct RestoreStall<Key: Equatable> {
     public mutating func reset() {
         key = nil
         count = 0
+    }
+}
+
+/// 단축키 누름 중 아직 보내지 못한 동작과 키가 눌려 있는지.
+public struct PressDemand {
+    /// 아직 보내지 못한 누름 동작 수.
+    public private(set) var pending = 0
+    /// 단축키가 눌려 있는지.
+    public private(set) var isHeld = false
+    private var stall = Stall<Int>()
+
+    /// 남은 것이 없는 상태로 만든다.
+    public init() {}
+
+    /// 단축키를 눌렀다.
+    public mutating func press() {
+        pending += 1
+        isHeld = true
+    }
+
+    /// 단축키를 뗐다.
+    public mutating func release() {
+        isHeld = false
+    }
+
+    /// tick 을 이어 갈지. `repeats` 는 누르고 있는 동안 반복하는지.
+    public func continues(repeats: Bool) -> Bool {
+        pending > 0 || (isHeld && repeats)
+    }
+
+    /// `now` 에 끝난 tick 의 결과를 반영한다.
+    public mutating func record(_ progress: RepeatPolicy.Progress, at now: TimeInterval) {
+        switch progress {
+        case .sent:
+            pending = max(pending - 1, 0)
+            stall.reset()
+        case .idle:
+            pending = 0
+            stall.reset()
+        case .blocked:
+            guard pending > 0, stall.recordStall(of: 0, at: now) else { return }
+            pending -= 1
+        }
     }
 }
 

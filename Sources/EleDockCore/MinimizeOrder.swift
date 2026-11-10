@@ -46,6 +46,9 @@ public struct MinimizeQueue<Window> {
         return windows.first
     }
 
+    /// 남은 앱과 창이 없다.
+    public var isEmpty: Bool { windows.isEmpty && pids.isEmpty }
+
     /// 맨 앞 창을 뺀다.
     public mutating func drop() {
         guard !windows.isEmpty else { return }

@@ -58,18 +58,6 @@ struct MinimizedStackTests {
         #expect(stack.recent(limit: 10).map(\.window) == ["b", "c", "a"])
     }
 
-    @Test func insertBelowPlacesUnderLowestStackedSuccessor() {
-        var stack = make([(1, "x"), (1, "b"), (1, "d")])
-        stack.insert(.init(pid: 1, window: "a"), below: ["c", "d", "b"])
-        #expect(stack.recent(limit: 10).map(\.window) == ["d", "b", "a", "x"])
-    }
-
-    @Test func insertBelowWithoutStackedSuccessorGoesOnTop() {
-        var stack = make([(1, "x"), (1, "a")])
-        stack.insert(.init(pid: 1, window: "a"), below: ["c"])
-        #expect(stack.recent(limit: 10).map(\.window) == ["a", "x"])
-    }
-
     @Test func takeRemovesOnlyThatWindow() {
         var stack = make([(1, "a"), (1, "b"), (1, "c")])
         #expect(stack.take("b")?.window == "b")

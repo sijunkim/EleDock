@@ -35,13 +35,6 @@ public struct MinimizedStack<Window: Equatable> {
         entries.append(entry)
     }
 
-    /// 창을 `successors` 중 가장 아래 쌓인 창 바로 밑에 넣는다.
-    public mutating func insert(_ entry: Entry, below successors: [Window]) {
-        entries.removeAll { $0.window == entry.window }
-        let index = entries.firstIndex { successors.contains($0.window) } ?? entries.endIndex
-        entries.insert(entry, at: index)
-    }
-
     /// 순서를 모르는 창을 맨 아래에 넣는다.
     public mutating func insertAtBottom(_ entry: Entry) {
         guard !contains(entry.window) else { return }

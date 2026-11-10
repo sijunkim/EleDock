@@ -15,11 +15,11 @@ final class WindowTracker {
     /// 마지막으로 최소화를 보낸 뒤 남은 후보.
     private var focusCandidates: MinimizeQueue<WindowEntry>?
     /// 복원에서 맨 위 창이 연속으로 막힌 횟수.
-    private var restoreStall = RestoreStall<ManagedWindow>()
+    private var restoreStall = Stall<ManagedWindow>()
     /// 보낸 복원의 확정 상태.
-    private(set) var restores = RestoreConfirmations<WindowEntry, ManagedWindow>(key: \.window)
+    private(set) var restores = WindowConfirmations(key: \.window, app: \.pid, minimized: false)
     /// 보낸 최소화의 확정 상태.
-    private var minimizes = MinimizeConfirmations<WindowEntry, ManagedWindow>(key: \.window)
+    private var minimizes = WindowConfirmations(key: \.window, app: \.pid, minimized: true)
     /// 진행 중인 반복 마무리.
     private var settleTask: Task<Void, Never>?
 
@@ -42,18 +42,15 @@ final class WindowTracker {
         restoreStall.reset()
         settleTask?.cancel()
         settleTask = nil
-        restores = RestoreConfirmations(key: \.window)
-        minimizes = MinimizeConfirmations(key: \.window)
+        restores = WindowConfirmations(key: \.window, app: \.pid, minimized: false)
+        minimizes = WindowConfirmations(key: \.window, app: \.pid, minimized: true)
     }
 
     private func handle(_ event: MinimizeObserver.Event) {
         switch event {
         case .minimized(let entry):
-            if let successors = minimizes.confirm(entry.window) {
-                stack.insert(entry, below: successors)
-            } else {
-                stack.push(entry)
-            }
+            minimizes.confirm(entry.window)
+            stack.push(entry)
         case .alreadyMinimized(let entry): stack.insertAtBottom(entry)
         case .gone(let window):
             stack.remove(window)
@@ -84,10 +81,11 @@ final class WindowTracker {
         var taken = stack.take(window)
         guard taken != nil else { return }
         beginRepeat(.restore)
-        _ = restoreFromStack(pop: {
-            defer { taken = nil }
-            return taken
-        })
+        _ = restoreFromStack(
+            pop: {
+                defer { taken = nil }
+                return taken
+            }, isWaiting: { _ in false })
         endRepeat()
     }
 
@@ -97,7 +95,7 @@ final class WindowTracker {
         settleTask = nil
         restores.beginRepeat()
         if action == .restore {
-            minimizes = MinimizeConfirmations(key: \.window)
+            minimizes = WindowConfirmations(key: \.window, app: \.pid, minimized: true)
             minimizeQueue = nil
         } else {
             minimizes.beginRepeat()
@@ -107,7 +105,6 @@ final class WindowTracker {
     }
 
     func endRepeat() {
-        for entry in restores.unconfirmed.reversed() { stack.putBack(entry) }
         let candidates = focusCandidates?.upcoming()
         minimizeQueue = nil
         focusCandidates = nil
@@ -121,24 +118,11 @@ final class WindowTracker {
                 guard !Task.isCancelled else { return }
                 let now = ProcessInfo.processInfo.systemUptime
                 let phase = schedule.phase(at: now)
-                guard schedule.minimizePhase(at: now) != .early else { continue }
+                guard phase != .early else { continue }
                 var busy = BusyGroups<pid_t>()
-                restores.resolve(phase: phase) { entry in
-                    let state = readMinimizedState(entry, &busy)
-                    if state == false { stack.remove(entry.window) }
-                    return state
-                }
-                let resends = minimizes.resolve(
-                    phase: schedule.minimizePhase(at: now), minimizedState: { readMinimizedState($0, &busy) },
-                    canResend: { entry in
-                        schedule.allowsResend(at: now)
-                            && busy.read(entry.pid, isBusy: \.isDelay) { () throws(AccessibilityError) in
-                                try isFocusedInFrontmost(entry)
-                            } == false
-                    })
-                for entry in resends {
-                    _ = entry.window.setMinimized(true)
-                }
+                restores.resolve(
+                    phase: phase, minimizedState: { readMinimizedState($0, &busy) }, abandon: { stack.putBack($0) })
+                minimizes.resolve(phase: phase, minimizedState: { readMinimizedState($0, &busy) }, abandon: { _ in })
                 if !focused {
                     focused = settleFocus(candidates: candidates, expired: phase == .expired, busy: &busy)
                 }
@@ -149,52 +133,92 @@ final class WindowTracker {
     }
 
     // 가장 최근 최소화 창부터 하나씩 복원한다.
-    func restoreNext() {
-        let restored = restoreFromStack(pop: { stack.popLast() })
-        if restored == nil, stack.last == nil { restoreFrontmostMinimizedWindow() }
+    func restoreNext() -> RepeatPolicy.Progress {
+        guard restoreFromStack(pop: { stack.popLast() }, isWaiting: awaitsRestore) == nil else { return .sent }
+        guard stack.last == nil else { return .blocked }
+        return restoreFrontmostMinimizedWindow()
     }
 
     // `pop` 이 꺼낸 창부터 최소화된 창 하나를 복원한다.
-    private func restoreFromStack(pop: () -> WindowEntry?) -> WindowEntry? {
+    private func restoreFromStack(pop: () -> WindowEntry?, isWaiting: (WindowEntry) -> Bool) -> WindowEntry? {
         RepeatPolicy.restoreNext(
             pop: pop, putBack: { stack.putBack($0) }, moveToBottom: { stack.insertAtBottom($0) }, key: \.window,
-            stall: &restoreStall, now: ProcessInfo.processInfo.systemUptime,
+            stall: &restoreStall, now: ProcessInfo.processInfo.systemUptime, isWaiting: isWaiting,
             minimizedState: { $0.window.minimizedState },
             restore: { restore($0) })
     }
 
-    // frontmost 앱의 최소화된 창 하나를 복원한다.
-    private func restoreFrontmostMinimizedWindow() {
-        guard let pid = NSWorkspace.shared.frontmostApplication?.processIdentifier,
-            let window = (try? ManagedWindow.windows(of: pid))?.first(where: { $0.minimizedState == true })
-        else { return }
-        _ = restore(WindowEntry(pid: pid, window: window))
+    // frontmost 앱의 최소화된 창 중 보낸 복원이 없는 창 하나를 복원한다.
+    private func restoreFrontmostMinimizedWindow() -> RepeatPolicy.Progress {
+        guard let pid = NSWorkspace.shared.frontmostApplication?.processIdentifier else { return .idle }
+        let windows: [ManagedWindow]
+        do throws(AccessibilityError) {
+            windows = try ManagedWindow.windows(of: pid)
+        } catch .cannotComplete {
+            return .blocked
+        } catch {
+            return .idle
+        }
+        var unknown = false
+        for window in windows where !restores.unconfirmed.contains(where: { $0.window == window }) {
+            switch window.minimizedState {
+            case true?: break
+            case false?: continue
+            case nil:
+                unknown = true
+                continue
+            }
+            let entry = WindowEntry(pid: pid, window: window)
+            guard !awaitsRestore(entry) else { return .blocked }
+            switch restore(entry) {
+            case .success: return .sent
+            case .busy: return .blocked
+            case .failure: continue
+            }
+        }
+        return unknown ? .blocked : .idle
     }
 
     // 맨 앞 창부터 하나씩 최소화한다.
-    func minimizeNext() {
+    func minimizeNext() -> RepeatPolicy.Progress {
         guard
             RepeatPolicy.advance(
-                peek: { minimizeQueue?.peek() }, drop: { minimizeQueue?.drop() }, attempt: { minimize($0) }) != nil
-        else { return }
+                peek: { minimizeQueue?.peek() }, drop: { minimizeQueue?.drop() }, isWaiting: awaitsMinimize,
+                attempt: { minimize($0) }) != nil
+        else { return minimizeQueue?.isEmpty == false ? .blocked : .idle }
         focusCandidates = minimizeQueue
+        return .sent
+    }
+
+    // 그 창의 앱에 보낸 복원이 아직 반영되지 않았는지.
+    private func awaitsRestore(_ entry: WindowEntry) -> Bool {
+        restores.awaits(
+            entry.pid, at: ProcessInfo.processInfo.systemUptime, minimizedState: { $0.window.minimizedState },
+            abandon: { stack.putBack($0) })
+    }
+
+    // 그 창의 앱에 보낸 최소화가 아직 반영되지 않았는지.
+    private func awaitsMinimize(_ entry: WindowEntry) -> Bool {
+        minimizes.awaits(
+            entry.pid, at: ProcessInfo.processInfo.systemUptime, minimizedState: { $0.window.minimizedState },
+            abandon: { _ in })
     }
 
     /// 최소화를 기록하고 보낸다.
     private func minimize(_ entry: WindowEntry) -> RepeatPolicy.Attempt {
         let recorded = minimizes
-        minimizes.record(entry)
+        minimizes.record(entry, at: ProcessInfo.processInfo.systemUptime)
         let result = entry.window.setMinimized(true)
-        if result == .failure { minimizes = recorded }
+        if result != .success { minimizes = recorded }
         return result
     }
 
     /// 모든 복원이 거치는 곳.
     private func restore(_ entry: WindowEntry) -> RepeatPolicy.Attempt {
         let recorded = restores
-        restores.record(entry)
+        restores.record(entry, at: ProcessInfo.processInfo.systemUptime)
         let result = entry.window.setMinimized(false)
-        if result == .failure { restores = recorded }
+        if result != .success { restores = recorded }
         return result
     }
 }

@@ -117,4 +117,13 @@ struct MinimizeQueueTests {
         #expect(queue.upcoming() == [31, 20, 21])
         #expect(asked == [3, 1, 4, 2])
     }
+
+    @Test func isEmptyOnlyWhenNoAppOrWindowRemains() {
+        var queue = MinimizeQueue(pids: [3]) { pid -> [Int32]? in [pid] }
+        #expect(!queue.isEmpty)
+        #expect(queue.peek() == 3)
+        #expect(!queue.isEmpty)
+        queue.drop()
+        #expect(queue.isEmpty)
+    }
 }

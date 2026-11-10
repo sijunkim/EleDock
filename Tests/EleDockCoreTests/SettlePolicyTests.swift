@@ -10,48 +10,6 @@ struct SettleScheduleTests {
         #expect(schedule.limit == schedule.deadline + SettleSchedule.maximumExtension)
     }
 
-    @Test func resendAllowedOnlyWithinLimitAfterRelease() {
-        let schedule = SettleSchedule(start: 10, pendingCount: 6)
-        #expect(schedule.allowsResend(at: 10 + SettleSchedule.resendLimit - 0.01))
-        #expect(!schedule.allowsResend(at: 10 + SettleSchedule.resendLimit))
-        #expect(!schedule.allowsResend(at: schedule.deadline))
-    }
-
-    @Test func resendLimitFitsInsideEverySchedule() {
-        #expect(SettleSchedule.resendLimit <= SettleSchedule(start: 0, pendingCount: 0).limit)
-        #expect(SettleSchedule.resendLimit > SettleSchedule(start: 0, pendingCount: 1).deadline)
-    }
-
-    @Test func resendCheckFallsBetweenEarliestDelayAndResendLimit() {
-        #expect(SettleSchedule.resendCheckDelay > SettleSchedule.earliestDelay)
-        #expect(SettleSchedule.resendCheckDelay + SettleSchedule.checkInterval < SettleSchedule.resendLimit)
-    }
-
-    @Test(arguments: [4, 5, 8])
-    func minimizeIsJudgedWithinResendLimit(pendingCount: Int) {
-        let start = 10.0
-        let schedule = SettleSchedule(start: start, pendingCount: pendingCount)
-        #expect(schedule.deadline >= start + SettleSchedule.resendLimit)
-        let checks = (1...).lazy.map { start + Double($0) * SettleSchedule.checkInterval }
-        let firstDue = checks.first { schedule.minimizePhase(at: $0) == .due }
-        #expect(firstDue.map { schedule.allowsResend(at: $0) } == true)
-        var confirmations = MinimizeConfirmations<String, String> { $0 }
-        confirmations.record("a")
-        let resend = confirmations.resolve(
-            phase: schedule.minimizePhase(at: firstDue ?? start), minimizedState: { _ in false },
-            canResend: { _ in schedule.allowsResend(at: firstDue ?? start) })
-        #expect(resend == ["a"])
-    }
-
-    @Test(arguments: [0, 3])
-    func minimizePhaseIsDueFromResendCheckDelay(pendingCount: Int) {
-        let schedule = SettleSchedule(start: 0, pendingCount: pendingCount)
-        #expect(schedule.resendCheck == SettleSchedule.resendCheckDelay)
-        #expect(schedule.minimizePhase(at: schedule.resendCheck - 0.01) == .waiting)
-        #expect(schedule.minimizePhase(at: schedule.resendCheck) == .due)
-        #expect(schedule.minimizePhase(at: schedule.limit) == .expired)
-    }
-
     @Test func phasesFollowTime() {
         let schedule = SettleSchedule(start: 0, pendingCount: 1)
         #expect(schedule.phase(at: 0) == .early)
@@ -62,9 +20,9 @@ struct SettleScheduleTests {
 }
 
 struct RestoreConfirmationsTests {
-    private func confirmations(_ sent: [String]) -> RestoreConfirmations<String, String> {
-        var confirmations = RestoreConfirmations<String, String> { $0 }
-        for entry in sent { confirmations.record(entry) }
+    private func confirmations(_ sent: [String]) -> Confirmations<String, String, Character?> {
+        var confirmations = Confirmations<String, String, Character?>(key: { $0 }, app: \.first, minimized: false)
+        for entry in sent { confirmations.record(entry, at: 0) }
         return confirmations
     }
 
@@ -84,7 +42,7 @@ struct RestoreConfirmationsTests {
                 minimizedState: { _ in
                     Issue.record("상태 조회가 불렸다")
                     return true
-                })
+                }, abandon: { _ in })
         }
         #expect(confirmations.unconfirmed == ["a"])
     }
@@ -92,17 +50,22 @@ struct RestoreConfirmationsTests {
     @Test func dueSettlesMinimizedAndConfirmsRestored() {
         var confirmations = confirmations(["c", "b", "a"])
         let states: [String: Bool] = ["a": true, "b": false, "c": true]
-        confirmations.resolve(phase: .due, minimizedState: { states[$0] })
+        var abandoned: [String] = []
+        confirmations.resolve(phase: .due, minimizedState: { states[$0] }, abandon: { abandoned.append($0) })
+        #expect(abandoned == ["a", "c"])
         #expect(confirmations.isResolved)
         #expect(confirmations.focusTarget == "b")
     }
 
     @Test func dueKeepsUnknownUntilExpired() {
         var confirmations = confirmations(["a"])
-        confirmations.resolve(phase: .due, minimizedState: { _ in nil })
+        var abandoned: [String] = []
+        confirmations.resolve(phase: .due, minimizedState: { _ in nil }, abandon: { abandoned.append($0) })
         #expect(confirmations.unconfirmed == ["a"])
-        confirmations.resolve(phase: .expired, minimizedState: { _ in nil })
+        #expect(abandoned.isEmpty)
+        confirmations.resolve(phase: .expired, minimizedState: { _ in nil }, abandon: { abandoned.append($0) })
         #expect(confirmations.isResolved)
+        #expect(abandoned == ["a"])
         #expect(confirmations.focusTarget == nil)
     }
 
@@ -141,7 +104,7 @@ struct RestoreConfirmationsTests {
             minimizedState: {
                 judged.append($0)
                 return true
-            })
+            }, abandon: { _ in })
         #expect(judged == ["b1"])
         #expect(confirmations.isResolved)
     }
@@ -155,15 +118,15 @@ struct RestoreConfirmationsTests {
             minimizedState: { _ in
                 Issue.record("상태 조회가 불렸다")
                 return true
-            })
+            }, abandon: { _ in })
         #expect(confirmations.focusTarget == "a")
     }
 
     @Test func failedRecordIsRevertedToEarlierState() {
         var confirmations = confirmations(["a"])
         let recorded = confirmations
-        confirmations.record("a")
-        confirmations.record("b")
+        confirmations.record("a", at: 0)
+        confirmations.record("b", at: 0)
         confirmations = recorded
         #expect(confirmations.unconfirmed == ["a"])
         #expect(confirmations.focusTarget == nil)
