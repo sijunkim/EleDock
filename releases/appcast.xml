@@ -3,6 +3,30 @@
     <channel>
         <title>EleDock</title>
         <item>
+            <title>1.0.2</title>
+            <pubDate>Tue, 10 Nov 2026 23:17:11 +0900</pubDate>
+            <sparkle:version>3</sparkle:version>
+            <sparkle:shortVersionString>1.0.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[# EleDock 1.0.2
+
+- The help text for holding a shortcut now matches how it works: windows keep going one after another while you hold, and stop when you let go.
+
+---
+
+- 단축키를 길게 누를 때의 도움말을 실제 동작에 맞게 고쳤습니다. 누르고 있는 동안 창이 이어서 동작하고, 손을 떼면 멈춥니다.
+
+---
+
+- ショートカットを長押ししたときのヘルプを実際の動作に合わせました。押し続けている間はウインドウを次々にしまったり戻したりし、離すと止まります。
+]]></description>
+            <enclosure url="https://github.com/sijunkim/EleDock/releases/download/v1.0.2/EleDock-1.0.2.zip" length="2723517" type="application/octet-stream" sparkle:edSignature="g/VM7cE+xeC/pYMmJenUISYiB/ELyx4STYec9ml4UoEpL9vE4/A8Yi0EMfHk2uUfYg8rqm9RZ0/AARzCqhawBw=="/>
+            <sparkle:deltas>
+                <enclosure url="https://github.com/sijunkim/EleDock/releases/download/v1.0.2/EleDock3-2.delta" sparkle:deltaFrom="2" length="63110" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976432" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="c6R/L0eGZhkG4KKOpKNXAIDKN/7Z/1fvCnIVe059ds0/C4J4J71ACpDyKSSL+6QxRwRI32BUFda1M3PGM7AhBA=="/>
+                <enclosure url="https://github.com/sijunkim/EleDock/releases/download/v1.0.2/EleDock3-1.delta" sparkle:deltaFrom="1" length="184134" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976432" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="lcMLD6vXmkXq80EHjMyFB3+xCCihgRs/EqjFH4ZuGRCFRXJphWlmDCoObpvr8rmf4IyM9Cmlsk0mXqM3N1auDQ=="/>
+            </sparkle:deltas>
+        </item>
+        <item>
             <title>1.0.1</title>
             <pubDate>Tue, 10 Nov 2026 18:34:31 +0900</pubDate>
             <sparkle:version>2</sparkle:version>
