@@ -1,0 +1,43 @@
+# 매일 릴리스 파일별 누적 다운로드 수를 stats 브랜치의 downloads.csv 에 기록한다.
+# 날짜별·버전별 증가량: git show origin/stats:downloads.csv > /tmp/d.csv && python3 scripts/download_stats.py report --csv /tmp/d.csv
+name: Download stats
+
+on:
+  schedule:
+    - cron: "17 15 * * *" # 매일 00:17 KST
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency: download-stats
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: stats 브랜치 준비
+        run: |
+          if git ls-remote --exit-code --heads origin stats > /dev/null; then
+            git fetch --depth 1 origin stats
+            git worktree add stats-branch FETCH_HEAD
+            git -C stats-branch switch -c stats
+          else
+            git worktree add --orphan -b stats stats-branch
+          fi
+
+      - name: 누적 다운로드 수 기록
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/download_stats.py collect --csv stats-branch/downloads.csv
+
+      - name: 커밋
+        working-directory: stats-branch
+        run: |
+          git add downloads.csv
+          git diff --cached --quiet && exit 0
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -q -m "stats: $(date -u +%F)"
+          git push origin stats
