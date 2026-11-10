@@ -1,6 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://sijunkim.github.io/EleDock/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sijunkim.github.io/EleDock/"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://sijunkim.github.io/EleDock/ko/"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://sijunkim.github.io/EleDock/ja/"/>
+  </url>
+  <url>
+    <loc>https://sijunkim.github.io/EleDock/ko/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sijunkim.github.io/EleDock/"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://sijunkim.github.io/EleDock/ko/"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://sijunkim.github.io/EleDock/ja/"/>
+  </url>
+  <url>
+    <loc>https://sijunkim.github.io/EleDock/ja/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sijunkim.github.io/EleDock/"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://sijunkim.github.io/EleDock/ko/"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://sijunkim.github.io/EleDock/ja/"/>
   </url>
 </urlset>

@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="{{lang}}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{meta.title}}</title>
+<meta name="description" content="{{meta.description}}">
+<meta name="google-site-verification" content="0ONQGh4jzcliQ80JzrblNesioHnuoSRibyPSoyIWVe8">
+<link rel="canonical" href="{{url}}">
+{{!alternates}}
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="EleDock">
+<meta property="og:title" content="EleDock">
+<meta property="og:description" content="{{hero.tagline}}">
+<meta property="og:locale" content="{{locale}}">
+<meta property="og:image" content="https://sijunkim.github.io/EleDock/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="{{url}}">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{{!jsonld}}
+</script>
+{{!redirect}}
+<meta name="color-scheme" content="light dark">
+<link rel="icon" type="image/png" href="{{base}}favicon.png">
+<link rel="apple-touch-icon" href="{{base}}icon.png">
+<style>
+:root {
+  --bg: #fbfbfd;
+  --surface: #ffffff;
+  --text: #1d1d1f;
+  --muted: #6e6e73;
+  --line: rgba(0, 0, 0, 0.08);
+  --accent: #3f52c8;
+  --accent-text: #ffffff;
+  --grad-top: #5c8cff;
+  --grad-bottom: #3833ad;
+  --stage-top: #dfe6ff;
+  --stage-bottom: #c4cdf5;
+  --window: #ffffff;
+  --window-bar: #f1f2f6;
+  --window-ink: #e3e5ec;
+  --dock: rgba(255, 255, 255, 0.55);
+  --key: #ffffff;
+  --key-edge: rgba(0, 0, 0, 0.14);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(20, 30, 80, 0.08);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0c0c10;
+    --surface: #16161c;
+    --text: #f5f5f7;
+    --muted: #a1a1a8;
+    --line: rgba(255, 255, 255, 0.1);
+    --accent: #7d8cff;
+    --accent-text: #0c0c10;
+    --stage-top: #23284a;
+    --stage-bottom: #161a33;
+    --window: #26262e;
+    --window-bar: #2f2f38;
+    --window-ink: #3a3a45;
+    --dock: rgba(255, 255, 255, 0.12);
+    --key: #24242c;
+    --key-edge: rgba(255, 255, 255, 0.14);
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.35);
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0c0c10;
+  --surface: #16161c;
+  --text: #f5f5f7;
+  --muted: #a1a1a8;
+  --line: rgba(255, 255, 255, 0.1);
+  --accent: #7d8cff;
+  --accent-text: #0c0c10;
+  --stage-top: #23284a;
+  --stage-bottom: #161a33;
+  --window: #26262e;
+  --window-bar: #2f2f38;
+  --window-ink: #3a3a45;
+  --dock: rgba(255, 255, 255, 0.12);
+  --key: #24242c;
+  --key-edge: rgba(255, 255, 255, 0.14);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 17px/1.6 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Apple SD Gothic Neo", "Hiragino Sans", "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; }
+:lang(ko) body, html:lang(ko) { word-break: keep-all; }
+.wrap { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+
+/* 머리글 */
+header.top {
+  position: sticky; top: 0; z-index: 10;
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+  backdrop-filter: saturate(180%) blur(16px);
+  -webkit-backdrop-filter: saturate(180%) blur(16px);
+  border-bottom: 1px solid var(--line);
+}
+header.top .wrap { display: flex; align-items: center; gap: 16px; height: 52px; }
+.brand { display: flex; align-items: center; gap: 8px; text-decoration: none; font-weight: 600; letter-spacing: -0.01em; }
+.brand img { width: 24px; height: 24px; }
+nav.links { margin-left: auto; display: flex; align-items: center; gap: 20px; font-size: 14px; }
+nav.links a { color: var(--muted); text-decoration: none; }
+nav.links a:hover { color: var(--text); }
+.lang { display: flex; gap: 2px; padding: 2px; border: 1px solid var(--line); border-radius: 8px; }
+.lang a {
+  border: 0; background: none; color: var(--muted); font: inherit; font-size: 13px;
+  padding: 2px 8px; border-radius: 6px; cursor: pointer; text-decoration: none;
+}
+.lang a[aria-current="page"] { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
+
+/* 첫 화면 */
+.hero { text-align: center; padding: 88px 0 56px; }
+.hero .icon { width: 132px; height: 132px; filter: drop-shadow(0 12px 28px rgba(56, 51, 173, 0.28)); }
+.wordmark { margin: 20px 0 0; font-size: clamp(44px, 8vw, 68px); line-height: 1.05; font-weight: 700; letter-spacing: -0.035em; }
+.wordmark .ele { font-weight: 300; }
+.wordmark .docks {
+  background: linear-gradient(180deg, var(--grad-top), var(--grad-bottom));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.meaning { margin: 8px 0 0; font-size: 12px; letter-spacing: 0.32em; color: var(--muted); }
+.tagline { margin: 28px 0 0; font-size: clamp(22px, 3.4vw, 28px); font-weight: 500; letter-spacing: -0.015em; }
+.lead { max-width: 560px; margin: 14px auto 0; color: var(--muted); }
+.cta { margin-top: 36px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.button {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 13px 26px; border-radius: 999px;
+  background: var(--accent); color: var(--accent-text);
+  font-weight: 600; text-decoration: none;
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+.button:hover { filter: brightness(1.08); }
+.button:active { transform: scale(0.98); }
+.button svg { width: 18px; height: 18px; }
+.fine { font-size: 13px; color: var(--muted); }
+.fine a { color: var(--muted); }
+
+/* 시연 */
+section { padding: 72px 0; border-top: 1px solid var(--line); }
+section h2 { margin: 0; text-align: center; font-size: clamp(28px, 4.4vw, 38px); line-height: 1.2; font-weight: 700; letter-spacing: -0.025em; }
+section .sub { margin: 10px auto 0; max-width: 560px; text-align: center; color: var(--muted); }
+
+.stage {
+  position: relative; margin: 40px auto 0; max-width: 760px; aspect-ratio: 16 / 10;
+  border-radius: 16px; overflow: hidden;
+  background: linear-gradient(160deg, var(--stage-top), var(--stage-bottom));
+  box-shadow: var(--shadow);
+  user-select: none; -webkit-user-select: none;
+}
+.win {
+  position: absolute; width: 46%; height: 52%;
+  border-radius: 10px; background: var(--window);
+  box-shadow: 0 10px 30px rgba(20, 24, 60, 0.18), 0 0 0 0.5px rgba(0, 0, 0, 0.12);
+  transform-origin: 0 0;
+  transition: transform 0.42s cubic-bezier(0.3, 0.7, 0.2, 1), opacity 0.42s ease;
+  overflow: hidden;
+}
+.win .bar { height: 14%; display: flex; align-items: center; gap: 5px; padding: 0 8px; background: var(--window-bar); }
+.win .bar i { width: 8px; height: 8px; border-radius: 50%; background: var(--window-ink); }
+.win.front .bar i:nth-child(1) { background: #ff5f57; }
+.win.front .bar i:nth-child(2) { background: #febc2e; }
+.win.front .bar i:nth-child(3) { background: #28c840; }
+.win .body { padding: 8% 7%; display: grid; gap: 7%; }
+.win .body b { display: block; height: 7px; border-radius: 4px; background: var(--window-ink); }
+.win .body b:first-child { width: 42%; background: var(--tint); opacity: 0.85; }
+.win .body b:nth-child(3) { width: 78%; }
+.win .body b:nth-child(4) { width: 64%; }
+.win.gone { opacity: 0; pointer-events: none; }
+.w1 { left: 6%; top: 8%; --tint: #ff8a65; }
+.w2 { left: 27%; top: 15%; --tint: #4db6ac; }
+.w3 { left: 48%; top: 22%; --tint: #7d8cff; }
+
+.dock {
+  position: absolute; left: 50%; bottom: 3.5%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 6px; padding: 6px 8px; height: 13%;
+  border-radius: 14px; background: var(--dock);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 0 0 0.5px rgba(255, 255, 255, 0.4) inset;
+}
+.dock .app { height: 100%; aspect-ratio: 1; border-radius: 22%; }
+.dock .app:nth-child(1) { background: linear-gradient(180deg, #ffb199, #ff7a59); }
+.dock .app:nth-child(2) { background: linear-gradient(180deg, #8de0d6, #3aa597); }
+.dock .app:nth-child(3) { background: linear-gradient(180deg, var(--grad-top), var(--grad-bottom)); }
+.dock .sep { width: 1px; height: 80%; background: rgba(0, 0, 0, 0.15); margin: 0 2px; }
+.dock .slots { display: flex; gap: 6px; height: 100%; }
+.dock .slot {
+  height: 100%; width: 0; border-radius: 4px; background: var(--window);
+  box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.15); overflow: hidden;
+  transition: width 0.3s ease;
+}
+.dock .slot.on { width: calc(var(--h) * 1.3); }
+.dock .slot::before { content: ""; display: block; height: 18%; background: var(--window-bar); }
+.dock .slot::after { content: ""; display: block; margin: 14% 14% 0; height: 12%; border-radius: 2px; background: var(--tint); }
+
+.keys { margin-top: 28px; display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; }
+.key {
+  display: inline-flex; flex-direction: column; align-items: center; gap: 2px;
+  min-width: 128px; padding: 12px 20px 10px; border-radius: 12px;
+  background: var(--key); color: var(--text);
+  border: 1px solid var(--key-edge); border-bottom-width: 3px;
+  font: inherit; cursor: pointer; touch-action: manipulation;
+  transition: transform 0.08s ease, border-bottom-width 0.08s ease;
+}
+.key kbd { font: 600 22px/1.2 -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; letter-spacing: 0.04em; }
+.key span { font-size: 12px; color: var(--muted); }
+.key.down, .key:active { transform: translateY(2px); border-bottom-width: 1px; }
+.key:focus-visible, .lang a:focus-visible, .button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.hint { margin-top: 14px; text-align: center; font-size: 13px; color: var(--muted); }
+
+/* 기능 */
+.grid { margin-top: 44px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+.cell { background: var(--bg); padding: 28px 26px; }
+.cell h3 { margin: 0; font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
+.cell p { margin: 8px 0 0; font-size: 15px; color: var(--muted); }
+
+/* 설치 */
+ol.steps { list-style: none; margin: 44px auto 0; padding: 0; max-width: 640px; counter-reset: step; }
+ol.steps li { counter-increment: step; position: relative; padding: 0 0 28px 52px; }
+ol.steps li::before {
+  content: counter(step); position: absolute; left: 0; top: 0;
+  width: 32px; height: 32px; border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 15px; font-weight: 600; color: var(--accent);
+  border: 1px solid var(--line); background: var(--surface);
+}
+ol.steps h3 { margin: 3px 0 0; font-size: 17px; font-weight: 600; }
+ol.steps p { margin: 4px 0 0; color: var(--muted); font-size: 15px; }
+.note { max-width: 640px; margin: 4px auto 0; padding-left: 52px; font-size: 14px; color: var(--muted); }
+
+footer { border-top: 1px solid var(--line); padding: 36px 0 48px; font-size: 13px; color: var(--muted); }
+footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 20px; justify-content: space-between; }
+footer a { color: var(--muted); }
+
+@media (max-width: 760px) {
+  .grid { grid-template-columns: 1fr; }
+  nav.links a.hide-sm { display: none; }
+  .hero { padding-top: 56px; }
+  section { padding: 56px 0; }
+}
+@media (max-width: 420px) {
+  .wrap { padding: 0 16px; }
+  .key { min-width: 0; flex: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .win, .dock .slot, .button, .key { transition: none; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="{{base}}"><img src="{{base}}favicon.png" alt="" width="24" height="24">EleDock</a>
+    <nav class="links">
+      <a class="hide-sm" href="#features">{{nav.features}}</a>
+      <a class="hide-sm" href="#install">{{nav.install}}</a>
+      <a href="https://github.com/sijunkim/EleDock">GitHub</a>
+      <div class="lang" role="group" aria-label="Language">
+        <a href="{{base}}" hreflang="en" data-lang="en"{{!current.en}}>EN</a>
+        <a href="{{base}}ko/" hreflang="ko" data-lang="ko"{{!current.ko}}>한국어</a>
+        <a href="{{base}}ja/" hreflang="ja" data-lang="ja"{{!current.ja}}>日本語</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="hero wrap">
+    <img class="icon" src="{{base}}icon.png" alt="EleDock" width="132" height="132">
+    <h1 class="wordmark"><span class="ele">Ele</span><span class="docks">Dock</span></h1>
+    <p class="meaning">ELEGANCE + DOCK</p>
+    <p class="tagline">{{hero.tagline}}</p>
+    <p class="lead">{{hero.lead}}</p>
+    <div class="cta">
+      <a class="button" href="https://github.com/sijunkim/EleDock/releases/latest/download/EleDock.dmg">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>
+        <span>{{hero.download}}</span>
+      </a>
+      <div class="fine"><span id="version" data-label="{{hero.version}}"></span><span>{{hero.meta}}</span></div>
+    </div>
+  </div>
+
+  <section id="demo">
+    <div class="wrap">
+      <h2>{{demo.title}}</h2>
+      <p class="sub">{{demo.sub}}</p>
+      <div class="stage" id="stage" aria-hidden="true">
+        <div class="win w1"><div class="bar"><i></i><i></i><i></i></div><div class="body"><b></b><b></b><b></b><b></b></div></div>
+        <div class="win w2"><div class="bar"><i></i><i></i><i></i></div><div class="body"><b></b><b></b><b></b><b></b></div></div>
+        <div class="win w3"><div class="bar"><i></i><i></i><i></i></div><div class="body"><b></b><b></b><b></b><b></b></div></div>
+        <div class="dock"><div class="app"></div><div class="app"></div><div class="app"></div><div class="sep"></div><div class="slots"></div></div>
+      </div>
+      <div class="keys">
+        <button type="button" class="key" id="key-min"><kbd>⌘M</kbd><span>{{demo.minimize}}</span></button>
+        <button type="button" class="key" id="key-res"><kbd>⇧⌘M</kbd><span>{{demo.restore}}</span></button>
+      </div>
+      <p class="hint">{{demo.hint}}</p>
+    </div>
+  </section>
+
+  <section id="features">
+    <div class="wrap">
+      <h2>{{features.title}}</h2>
+      <div class="grid">
+        <div class="cell"><h3>{{f1.t}}</h3><p>{{f1.d}}</p></div>
+        <div class="cell"><h3>{{f2.t}}</h3><p>{{f2.d}}</p></div>
+        <div class="cell"><h3>{{f3.t}}</h3><p>{{f3.d}}</p></div>
+        <div class="cell"><h3>{{f4.t}}</h3><p>{{f4.d}}</p></div>
+        <div class="cell"><h3>{{f5.t}}</h3><p>{{f5.d}}</p></div>
+        <div class="cell"><h3>{{f6.t}}</h3><p>{{f6.d}}</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="install">
+    <div class="wrap">
+      <h2>{{install.title}}</h2>
+      <ol class="steps">
+        <li><h3>{{s1.t}}</h3><p>{{s1.d}}</p></li>
+        <li><h3>{{s2.t}}</h3><p>{{s2.d}}</p></li>
+        <li><h3>{{s3.t}}</h3><p>{{s3.d}}</p></li>
+      </ol>
+      <p class="note">{{install.note}}</p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 EleDock</span>
+    <span><a href="https://github.com/sijunkim/EleDock">{{footer.source}}</a> · <a href="https://github.com/sijunkim/EleDock/blob/main/LICENSE">MIT License</a> · <a href="https://github.com/sijunkim/EleDock/releases">{{footer.releases}}</a></span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  /* 언어 링크를 누르면 그 언어를 기억한다. 첫 페이지는 기억한 언어로 넘어간다. */
+  document.querySelectorAll(".lang a").forEach(function (a) {
+    a.addEventListener("click", function () {
+      try { localStorage.setItem("lang", a.getAttribute("data-lang")); } catch (e) {}
+    });
+  });
+
+  var label = document.getElementById("version");
+  fetch("https://api.github.com/repos/sijunkim/EleDock/releases/latest")
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (d) {
+      if (d && d.tag_name) label.textContent = label.getAttribute("data-label").replace("{v}", d.tag_name.replace(/^v/, ""));
+    })
+    .catch(function () {});
+
+  /* 시연: 창을 하나씩 Dock 으로 보내고, 보낸 순서를 거슬러 되돌린다. */
+  var stage = document.getElementById("stage");
+  var slots = stage.querySelector(".slots");
+  var visible = Array.prototype.slice.call(stage.querySelectorAll(".win")); // 뒤 → 앞
+  var stack = []; // 최소화한 순서
+  var z = 10;
+
+  function syncFront() {
+    visible.forEach(function (w, i) {
+      w.classList.toggle("front", i === visible.length - 1);
+      w.style.zIndex = w.style.zIndex || String(++z);
+    });
+  }
+  visible.forEach(function (w) { w.style.zIndex = String(++z); });
+  syncFront();
+
+  function minimize() {
+    var w = visible.pop();
+    if (!w) return;
+    var slot = document.createElement("div");
+    slot.className = "slot";
+    slot.style.setProperty("--tint", getComputedStyle(w).getPropertyValue("--tint"));
+    slot.style.setProperty("--h", slots.getBoundingClientRect().height + "px");
+    slots.appendChild(slot);
+    slot.getBoundingClientRect();
+    slot.classList.add("on");
+    var to = slot.getBoundingClientRect();
+    var from = w.getBoundingClientRect();
+    var scale = Math.min(to.height / from.height, (to.height * 1.3) / from.width);
+    w.style.transform =
+      "translate(" + (to.left - from.left) + "px," + (to.top - from.top) + "px) scale(" + scale + ")";
+    w.classList.add("gone");
+    stack.push({ win: w, slot: slot });
+    syncFront();
+  }
+
+  function restore() {
+    var item = stack.pop();
+    if (!item) return;
+    item.slot.classList.remove("on");
+    setTimeout(function () { item.slot.remove(); }, 300);
+    item.win.style.zIndex = String(++z);
+    item.win.style.transform = "";
+    item.win.classList.remove("gone");
+    visible.push(item.win);
+    syncFront();
+  }
+
+  /* 길게 누르면 0.25초마다 반복한다. */
+  function holdable(button, action) {
+    var timer = null;
+    function start(e) {
+      if (e) e.preventDefault();
+      stop();
+      action();
+      button.classList.add("down");
+      timer = setInterval(action, 250);
+    }
+    function stop() {
+      if (timer) clearInterval(timer);
+      timer = null;
+      button.classList.remove("down");
+    }
+    button.addEventListener("pointerdown", start);
+    ["pointerup", "pointerleave", "pointercancel", "blur"].forEach(function (n) { button.addEventListener(n, stop); });
+    button.addEventListener("keydown", function (e) {
+      if ((e.key === "Enter" || e.key === " ") && !e.repeat) start(e);
+    });
+    button.addEventListener("keyup", function (e) {
+      if (e.key === "Enter" || e.key === " ") stop();
+    });
+    button.addEventListener("click", function (e) { e.preventDefault(); });
+    return { start: start, stop: stop };
+  }
+
+  var minKey = holdable(document.getElementById("key-min"), minimize);
+  var resKey = holdable(document.getElementById("key-res"), restore);
+
+  /* 키보드의 M 과 ⇧M 으로도 시연한다(⌘M 은 브라우저 창이 최소화되므로 쓰지 않는다). */
+  var held = null;
+  document.addEventListener("keydown", function (e) {
+    if (e.metaKey || e.ctrlKey || e.altKey || e.repeat) return;
+    if (e.key !== "m" && e.key !== "M") return;
+    var t = e.target;
+    if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA")) return;
+    held = e.shiftKey ? resKey : minKey;
+    held.start();
+  });
+  document.addEventListener("keyup", function (e) {
+    if (held && (e.key === "m" || e.key === "M" || e.key === "Shift")) { held.stop(); held = null; }
+  });
+})();
+</script>
+</body>
+</html>
